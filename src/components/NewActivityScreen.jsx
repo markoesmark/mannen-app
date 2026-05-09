@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { T, generateWeeks, formatDate, formatTijd, isExpired } from '../lib/helpers.js'
+import { T, generateWeeks, formatDate, formatTijd, isExpired, buildWhatsAppUrl, buildGroupWhatsAppMessage } from '../lib/helpers.js'
 import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
@@ -13,6 +13,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
   const [endTime, setEndTime] = useState('')
   const [saving, setSaving] = useState(false)
   const [weekOffset, setWeekOffset] = useState(0)
+  const [createdActivity, setCreatedActivity] = useState(null)
 
   const weeks = generateWeeks(8)
   const visibleWeeks = weeks.slice(weekOffset, weekOffset + 3)
@@ -36,7 +37,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
         endTime: endTime || null,
         fromMemberId: currentMember.id,
       })
-      onCreated(newActivity)
+      setCreatedActivity(newActivity)
     } catch (e) {
       alert('Aanmaken mislukt: ' + e.message)
     }
@@ -147,8 +148,8 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
         </div>
       )}
 
-      {/* Stap 3: Bevestig + WhatsApp */}
-      {step === 3 && (
+      {/* Stap 3: Overzicht + aanmaken */}
+      {step === 3 && !createdActivity && (
         <div style={{ padding: '14px 16px' }}>
           <SectionTitle style={{ padding: 0, marginBottom: 10 }}>Overzicht</SectionTitle>
           <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, padding: '16px', marginBottom: 20 }}>
@@ -167,27 +168,54 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
             </div>
           </div>
 
+          <Btn onClick={handleCreate} disabled={saving}>{saving ? 'Aanmaken…' : '✓ Activiteit aanmaken'}</Btn>
+          <Btn variant="ghost" onClick={() => setStep(2)}>← Terug</Btn>
+        </div>
+      )}
+
+      {/* Na aanmaken: werkende WhatsApp knoppen */}
+      {step === 3 && createdActivity && (
+        <div style={{ padding: '14px 16px' }}>
+          <div style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, borderRadius: 6, padding: '14px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 24 }}>✅</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: T.green }}>Activiteit aangemaakt!</div>
+              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>Stuur nu een berichtje naar de groep.</div>
+            </div>
+          </div>
+
           <SectionTitle style={{ padding: 0, marginBottom: 10 }}>Sturen via WhatsApp</SectionTitle>
           <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', marginBottom: 20 }}>
             {members.filter(m => m.id !== currentMember?.id).map((m, i, arr) => (
               <div key={m.id}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px' }}>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{m.name}</span>
-                  <span style={{ background: '#25D366', borderRadius: 4, padding: '8px 13px', color: T.white, fontSize: 12, fontWeight: 700 }}>📲 WhatsApp</span>
+                  <a
+                    href={buildWhatsAppUrl(m.phone || '', createdActivity, window.location.origin)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ background: '#25D366', borderRadius: 4, padding: '8px 13px', color: T.white, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}
+                  >
+                    📲 {m.name}
+                  </a>
                 </div>
                 {i < arr.length - 1 && <div style={{ height: 1, background: T.border }} />}
               </div>
             ))}
             <div style={{ height: 1, background: T.border }} />
             <div style={{ padding: '11px 14px' }}>
-              <button style={{ width: '100%', background: '#25D366', border: 'none', borderRadius: 4, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
+              <a
+                href={buildGroupWhatsAppMessage(createdActivity, members, [], window.location.origin)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'block', width: '100%', background: '#25D366', borderRadius: 4, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
+              >
                 📲 Stuur naar iedereen
-              </button>
+              </a>
             </div>
           </div>
 
-          <Btn onClick={handleCreate} disabled={saving}>{saving ? 'Aanmaken…' : '✓ Activiteit aanmaken'}</Btn>
-          <Btn variant="ghost" onClick={() => setStep(2)}>← Terug</Btn>
+          <Btn onClick={() => onCreated(createdActivity)}>Klaar →</Btn>
         </div>
       )}
     </div>

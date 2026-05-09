@@ -187,6 +187,22 @@ export async function toggleWishlistVote(wishlistId, memberId) {
   }
 }
 
+export async function updateWishlistItem(id, { title, location }) {
+  const { data, error } = await supabase
+    .from('wishlist')
+    .update({ title, location })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteWishlistItem(id) {
+  const { error } = await supabase.from('wishlist').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ─── REALTIME ─────────────────────────────────────────────────────────────────
 
 export function subscribeToActivities(callback) {
