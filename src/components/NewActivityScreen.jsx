@@ -116,9 +116,26 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           {fullDays.length === 0 && partialDays.length === 0 && (
             <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 16 }}>
               <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
-              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken.</div>
+              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
             </div>
           )}
+
+          {/* Handmatige datum */}
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, padding: '14px', marginTop: 8, marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Andere datum kiezen</div>
+            <input
+              type="date"
+              min={new Date().toISOString().split('T')[0]}
+              value={chosenDate || ''}
+              onChange={e => setChosenDate(e.target.value)}
+              style={{ width: '100%', background: T.surfaceAlt, border: `1px solid ${chosenDate ? T.red : T.borderDark}`, borderRadius: 6, padding: '10px 12px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light', boxSizing: 'border-box' }}
+            />
+            {chosenDate && !fullDays.find(d => d.date === chosenDate) && !partialDays.find(d => d.date === chosenDate) && (
+              <div style={{ fontSize: 11, color: T.amber, marginTop: 6, fontWeight: 600 }}>
+                ⚠ Deze datum staat niet in ieders beschikbaarheid
+              </div>
+            )}
+          </div>
 
           {/* Tijdsvelden */}
           {chosenDate && (
