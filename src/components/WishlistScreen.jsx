@@ -123,7 +123,7 @@ export default function WishlistScreen({ wishlist, members, currentMember, onUpd
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 800, fontSize: 15, color: T.text, marginBottom: 3, lineHeight: 1.25 }}>{w.title}</div>
                       <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 8 }}>
-                        {w.location && `📍 ${w.location} · `}{w.members?.name}
+                        {w.location && `📍 ${w.location}`}
                       </div>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
                         {members.map(m => (
