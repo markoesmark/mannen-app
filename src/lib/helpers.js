@@ -1,0 +1,111 @@
+// ─── THEME ────────────────────────────────────────────────────────────────────
+export const T = {
+  bg: '#f4f4f2', surface: '#ffffff', surfaceAlt: '#f0f0ee',
+  navBg: '#1a1a1a',
+  text: '#111111', textMid: '#444444', textMuted: '#888888', white: '#ffffff',
+  red: '#cc0000', redDark: '#a50000', redLight: '#fff0f0', redBorder: '#ffcccc',
+  green: '#1a7a3c', greenBg: '#edf7f1', greenBorder: '#b3dfc4',
+  amber: '#8a5c00', amberBg: '#fff8e6', amberBorder: '#ffd97a',
+  border: '#e0e0de', borderDark: '#c8c8c5',
+}
+
+// ─── WEEK GENERATOR ───────────────────────────────────────────────────────────
+// Genereer 8 weken vooruit vanaf vandaag
+export function generateWeeks(count = 8) {
+  const weeks = []
+  const today = new Date()
+  // Naar maandag van huidige week
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
+
+  const dayNames = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
+  const monthNames = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+
+  for (let w = 0; w < count; w++) {
+    const weekStart = new Date(monday)
+    weekStart.setDate(monday.getDate() + w * 7)
+    const year = weekStart.getFullYear()
+    const weekNum = getWeekNumber(weekStart)
+    const key = `${year}-W${String(weekNum).padStart(2, '0')}`
+
+    const days = []
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(weekStart)
+      date.setDate(weekStart.getDate() + d)
+      days.push({
+        k: dayNames[d],
+        n: date.getDate(),
+        month: monthNames[date.getMonth()],
+        fullDate: date.toISOString().split('T')[0], // YYYY-MM-DD voor Supabase
+      })
+    }
+
+    weeks.push({
+      key,
+      label: `Week ${weekNum}`,
+      month: monthNames[weekStart.getMonth()],
+      days,
+    })
+  }
+  return weeks
+}
+
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7)
+}
+
+// ─── DATE HELPERS ─────────────────────────────────────────────────────────────
+export function formatDate(isoDate) {
+  if (!isoDate) return ''
+  const d = new Date(isoDate)
+  const dayNames = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za']
+  const monthNames = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+  return `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`
+}
+
+export function formatTijd(startTime, endTime) {
+  if (!startTime) return null
+  if (!endTime) return startTime
+  return `${startTime} – ${endTime}`
+}
+
+export function isExpired(expiresAt) {
+  if (!expiresAt) return true
+  return new Date(expiresAt) < new Date()
+}
+
+export function daysUntilExpiry(expiresAt) {
+  if (!expiresAt) return 0
+  const diff = new Date(expiresAt) - new Date()
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
+}
+
+// ─── WHATSAPP ─────────────────────────────────────────────────────────────────
+export function buildWhatsAppUrl(phoneNumber, activity, appBaseUrl) {
+  const datum = formatDate(activity.best_date)
+  const tijd = formatTijd(activity.start_time, activity.end_time)
+  const tijdStr = tijd ? `, ${tijd}` : ''
+  const link = `${appBaseUrl}/bevestig/${activity.id}`
+
+  const message = `Hey! Er staat een activiteit klaar: *${activity.title}* op *${datum}${tijdStr}* in ${activity.location}. Bevestig je aanwezigheid via: ${link}`
+  return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+}
+
+export function buildGroupWhatsAppMessage(activity, members, confirmations, appBaseUrl) {
+  const datum = formatDate(activity.best_date)
+  const tijd = formatTijd(activity.start_time, activity.end_time)
+  const tijdStr = tijd ? `, ${tijd}` : ''
+  const link = `${appBaseUrl}/bevestig/${activity.id}`
+
+  const statusLines = members.map(m => {
+    const confirmed = confirmations.some(c => c.member_id === m.id)
+    return `${confirmed ? '✅' : '⏳'} ${m.name}`
+  }).join('\n')
+
+  const message = `📅 *${activity.title}* — ${datum}${tijdStr}\n📍 ${activity.location}\n\n${statusLines}\n\nBevestig via: ${link}`
+  return `https://wa.me/?text=${encodeURIComponent(message)}`
+}
