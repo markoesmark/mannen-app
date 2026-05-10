@@ -69,8 +69,9 @@ export function formatDate(isoDate) {
 
 export function formatTijd(startTime, endTime) {
   if (!startTime) return null
-  if (!endTime) return startTime
-  return `${startTime} – ${endTime}`
+  const trim = (t) => t ? t.slice(0, 5) : null  // "20:00:00" → "20:00"
+  if (!endTime) return trim(startTime)
+  return `${trim(startTime)} – ${trim(endTime)}`
 }
 
 export function isExpired(expiresAt) {
