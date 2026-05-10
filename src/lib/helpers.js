@@ -96,7 +96,40 @@ export function buildWhatsAppUrl(phoneNumber, activity, appBaseUrl) {
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
 }
 
-export function buildGroupWhatsAppMessage(activity, members, confirmations, appBaseUrl) {
+export function downloadICS(activity) {
+  const title = activity.title
+  const location = activity.location || ''
+  const date = activity.best_date?.replace(/-/g, '') // "2025-05-17" → "20250517"
+
+  // Bouw start en eindtijd op
+  const startTime = activity.start_time?.slice(0, 5).replace(':', '') || '090000'
+  const endTime = activity.end_time?.slice(0, 5).replace(':', '') || '180000'
+  const dtStart = `${date}T${startTime}00`
+  const dtEnd = `${date}T${endTime}00`
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Mannen App//NL',
+    'BEGIN:VEVENT',
+    `UID:${activity.id}@mannen-app`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15)}Z`,
+    `DTSTART;TZID=Europe/Amsterdam:${dtStart}`,
+    `DTEND;TZID=Europe/Amsterdam:${dtEnd}`,
+    `SUMMARY:${title}`,
+    `LOCATION:${location}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n')
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${title.replace(/\s+/g, '-').toLowerCase()}.ics`
+  a.click()
+  URL.revokeObjectURL(url)
+}
   const datum = formatDate(activity.best_date)
   const tijd = formatTijd(activity.start_time, activity.end_time)
   const tijdStr = tijd ? `, ${tijd}` : ''

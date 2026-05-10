@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { T, formatDate, formatTijd, buildWhatsAppUrl, buildGroupWhatsAppMessage } from '../lib/helpers.js'
+import { T, formatDate, formatTijd, buildWhatsAppUrl, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
 import { updateActivity, deleteActivity, confirmActivity } from '../lib/supabase.js'
 import { StatusBadge, MemberChip, SectionTitle, Divider, Lbl, Inp, Btn } from './UI.jsx'
 
@@ -155,6 +155,24 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
             Wachten op {members.filter(m => !confirmIds.includes(m.id)).map(m => m.name).join(', ')}
           </div>
         </div>
+      )}
+
+      {/* Toevoegen aan agenda */}
+      {(alreadyConfirmed || activity.status === 'gepland') && (
+        <>
+          <SectionTitle>Agenda</SectionTitle>
+          <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, padding: '14px 16px' }}>
+            <button
+              onClick={() => downloadICS(activity)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: T.surfaceAlt, border: `1px solid ${T.border}`, borderRadius: 6, fontSize: 14, fontWeight: 700, color: T.text, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}
+            >
+              📅 Toevoegen aan agenda
+            </button>
+            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 8, textAlign: 'center' }}>
+              Werkt met iPhone Agenda, Google Calendar en Outlook
+            </div>
+          </div>
+        </>
       )}
 
       {/* WhatsApp */}

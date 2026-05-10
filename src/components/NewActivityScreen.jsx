@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { T, generateWeeks, formatDate, formatTijd, isExpired, buildWhatsAppUrl, buildGroupWhatsAppMessage } from '../lib/helpers.js'
+import { T, generateWeeks, formatDate, formatTijd, isExpired, buildWhatsAppUrl, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
 import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
@@ -232,6 +232,12 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
             </div>
           </div>
 
+          <button
+            onClick={() => downloadICS(createdActivity)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: T.surfaceAlt, border: `1px solid ${T.border}`, borderRadius: 6, fontSize: 14, fontWeight: 700, color: T.text, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", marginBottom: 8 }}
+          >
+            📅 Toevoegen aan agenda
+          </button>
           <Btn onClick={() => onCreated(createdActivity)}>Klaar →</Btn>
         </div>
       )}
