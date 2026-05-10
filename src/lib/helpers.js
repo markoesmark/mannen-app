@@ -143,16 +143,3 @@ export function downloadICS(activity) {
   a.click()
   URL.revokeObjectURL(url)
 }
-  const datum = formatDate(activity.best_date)
-  const tijd = formatTijd(activity.start_time, activity.end_time)
-  const tijdStr = tijd ? `, ${tijd}` : ''
-  const link = `${appBaseUrl}/bevestig/${activity.id}`
-
-  const statusLines = members.map(m => {
-    const confirmed = confirmations.some(c => c.member_id === m.id)
-    return `${confirmed ? '✅' : '⏳'} ${m.name}`
-  }).join('\n')
-
-  const message = `📅 *${activity.title}* — ${datum}${tijdStr}\n📍 ${activity.location}\n\n${statusLines}\n\nBevestig via: ${link}`
-  return `https://wa.me/?text=${encodeURIComponent(message)}`
-}
