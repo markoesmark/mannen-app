@@ -9,7 +9,6 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
   const [location, setLocation] = useState(activity.location)
   const [startTime, setStartTime] = useState(activity.start_time || '')
   const [endTime, setEndTime] = useState(activity.end_time || '')
-  const [pin, setPin] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -139,9 +138,7 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
         <>
           <SectionTitle>Jouw bevestiging</SectionTitle>
           <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, padding: '14px 16px' }}>
-            <Lbl>Pincode</Lbl>
-            <Inp value={pin} onChange={e => setPin(e.target.value)} type="password" placeholder="••••" maxLength={4} />
-            <Btn disabled={pin.length < 4 || confirming} onClick={handleConfirm}>
+            <Btn disabled={confirming} onClick={handleConfirm}>
               {confirming ? 'Bevestigen…' : '✓ Ik ben erbij!'}
             </Btn>
           </div>
@@ -195,23 +192,6 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
                 📲 Stuur naar de groep
               </a>
             </div>
-
-            <Divider />
-            <div style={{ padding: '10px 16px 4px', fontSize: 12, color: T.textMuted }}>Of individueel:</div>
-            {members.filter(m => !confirmIds.includes(m.id)).map((m, i, arr) => (
-              <div key={m.id}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{m.name}</span>
-                  <a href={buildWhatsAppUrl(m.phone || '', activity, appBaseUrl)} target="_blank" rel="noopener noreferrer" style={{ background: '#25D366', borderRadius: 4, padding: '8px 14px', color: T.white, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}>
-                    📲 {m.name}
-                  </a>
-                </div>
-                {i < arr.length - 1 && <Divider />}
-              </div>
-            ))}
-            {members.filter(m => !confirmIds.includes(m.id)).length === 0 && (
-              <div style={{ padding: '10px 16px 14px', fontSize: 12, color: T.green, fontWeight: 600 }}>✓ Iedereen heeft al bevestigd</div>
-            )}
           </div>
         </>
       )}

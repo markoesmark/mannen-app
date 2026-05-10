@@ -203,23 +203,6 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
 
           <SectionTitle style={{ padding: 0, marginBottom: 10 }}>Sturen via WhatsApp</SectionTitle>
           <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', marginBottom: 20 }}>
-            {members.filter(m => m.id !== currentMember?.id).map((m, i, arr) => (
-              <div key={m.id}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px' }}>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{m.name}</span>
-                  <a
-                    href={buildWhatsAppUrl(m.phone || '', createdActivity, window.location.origin)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ background: '#25D366', borderRadius: 4, padding: '8px 13px', color: T.white, fontSize: 12, fontWeight: 700, textDecoration: 'none' }}
-                  >
-                    📲 {m.name}
-                  </a>
-                </div>
-                {i < arr.length - 1 && <div style={{ height: 1, background: T.border }} />}
-              </div>
-            ))}
-            <div style={{ height: 1, background: T.border }} />
             <div style={{ padding: '11px 14px' }}>
               <a
                 href={buildGroupWhatsAppMessage(createdActivity, members, [], window.location.origin)}
@@ -227,7 +210,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
                 rel="noopener noreferrer"
                 style={{ display: 'block', width: '100%', background: '#25D366', borderRadius: 4, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
               >
-                📲 Stuur naar iedereen
+                📲 Stuur naar de groep
               </a>
             </div>
           </div>
