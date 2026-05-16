@@ -101,15 +101,29 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           {partialDays.length > 0 && (
             <>
               <SectionTitle style={{ padding: 0, marginTop: 14, marginBottom: 10 }}>Gedeeltelijk beschikbaar</SectionTitle>
-              {partialDays.map(({ date, who }) => (
-                <div key={date} onClick={() => setChosenDate(date)} style={{ background: chosenDate === date ? T.amberBg : T.surface, border: `1px solid ${chosenDate === date ? T.amberBorder : T.border}`, borderRadius: 6, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: chosenDate === date ? T.amber : T.text }}>{formatDate(date)}</div>
-                    <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{who.map(m => m.name).join(', ')} kunnen</div>
+              {partialDays.map(({ date, who }) => {
+                const namen = who.length === 1
+                  ? `${who[0].name} kan`
+                  : `${who.map(m => m.name).join(', ')} kunnen`
+                return (
+                  <div key={date} onClick={() => setChosenDate(date)} style={{ background: chosenDate === date ? T.amberBg : T.surface, border: `1px solid ${chosenDate === date ? T.amberBorder : T.border}`, borderRadius: 6, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: chosenDate === date ? T.amber : T.text }}>{formatDate(date)}</div>
+                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{namen}</div>
+                    </div>
+                    <span style={{ fontSize: 12, color: T.amber, fontWeight: 800 }}>{who.length}/{members.length}</span>
                   </div>
-                  <span style={{ fontSize: 12, color: T.amber, fontWeight: 800 }}>{who.length}/{members.length}</span>
-                </div>
-              ))}
+                )
+              })}
+              {/* WhatsApp nudge bij gedeeltelijke beschikbaarheid */}
+              <a
+                href={buildNudgeWhatsApp(title || fromWish?.title, members, currentMember, window.location.origin)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box', marginTop: 4, marginBottom: 8 }}
+              >
+                📲 Vraag de groep meer beschikbaarheid in te vullen
+              </a>
             </>
           )}
 
