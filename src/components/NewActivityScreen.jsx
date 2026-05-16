@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { T, generateWeeks, formatDate, formatTijd, isExpired, buildWhatsAppUrl, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
+import { T, generateWeeks, formatDate, formatTijd, isExpired, buildWhatsAppUrl, buildGroupWhatsAppMessage, buildNudgeWhatsApp, buildDateNudgeWhatsApp, downloadICS } from '../lib/helpers.js'
 import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
@@ -114,9 +114,19 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           )}
 
           {fullDays.length === 0 && partialDays.length === 0 && (
-            <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
-              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 10 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
+                <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
+              </div>
+              <a
+                href={buildNudgeWhatsApp(title || fromWish?.title, members, currentMember, window.location.origin)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '12px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}
+              >
+                📲 Vraag de groep beschikbaarheid in te vullen
+              </a>
             </div>
           )}
 
@@ -131,8 +141,18 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
               style={{ width: '100%', background: T.surfaceAlt, border: `1px solid ${chosenDate ? T.red : T.borderDark}`, borderRadius: 6, padding: '10px 12px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light', boxSizing: 'border-box' }}
             />
             {chosenDate && !fullDays.find(d => d.date === chosenDate) && !partialDays.find(d => d.date === chosenDate) && (
-              <div style={{ fontSize: 11, color: T.amber, marginTop: 6, fontWeight: 600 }}>
-                ⚠ Deze datum staat niet in ieders beschikbaarheid
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 11, color: T.amber, marginBottom: 8, fontWeight: 600 }}>
+                  ⚠ Deze datum staat niet in ieders beschikbaarheid
+                </div>
+                <a
+                  href={buildDateNudgeWhatsApp(title || fromWish?.title, chosenDate, window.location.origin)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}
+                >
+                  📲 Vraag of het toch lukt
+                </a>
               </div>
             )}
           </div>
