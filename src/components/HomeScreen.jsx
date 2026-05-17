@@ -39,6 +39,27 @@ export default function HomeScreen({ activities, availability, members, currentM
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
 
+      {/* Statistieken — alleen op desktop zichtbaar */}
+      <div style={{ display: 'none' }} className="desktop-stats">
+        <div style={{ padding: '20px 20px 0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 4 }}>
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>Iedereen vrij</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: overlapDays.length > 0 ? T.green : T.textMuted }}>{overlapDays.length}</div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>datums beschikbaar</div>
+          </div>
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>Open activiteiten</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: pending.length > 0 ? T.amber : T.textMuted }}>{pending.length}</div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>wacht op bevestiging</div>
+          </div>
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>Gepland</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: planned.length > 0 ? T.green : T.textMuted }}>{planned.length}</div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>activiteiten</div>
+          </div>
+        </div>
+      </div>
+
       {/* Mijn beschikbaarheid */}
       <SectionTitle>Mijn beschikbaarheid</SectionTitle>
       <div onClick={onOpenAvailability} style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>

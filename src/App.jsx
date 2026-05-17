@@ -5,7 +5,7 @@ import {
   getMembers, getAvailabilityIncludingExpired, getActivities, getWishlist,
   archiveExpiredActivities, subscribeToActivities, subscribeToAvailability,
 } from './lib/supabase.js'
-import { NOSHeader, SubHeader, BottomNav } from './components/UI.jsx'
+import { NOSHeader, SubHeader, BottomNav, SidebarNav } from './components/UI.jsx'
 import LoginScreen from './components/LoginScreen.jsx'
 import HomeScreen from './components/HomeScreen.jsx'
 import AvailabilityScreen from './components/AvailabilityScreen.jsx'
@@ -133,85 +133,121 @@ export default function App() {
   return (
     <>
       <style>{globalStyles}</style>
-      <div style={{ background: T.bg, minHeight: '100vh', fontFamily: "'Outfit',sans-serif", color: T.text, display: 'flex', flexDirection: 'column', maxWidth: 420, margin: '0 auto' }}>
 
-        {/* Header */}
-        {showHelp ? (
-          <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
-            <div style={{ padding: '10px 16px 14px' }}>
-              <button onClick={() => setShowHelp(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '8px 16px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, minHeight: 38 }}>
-                ‹ Terug
-              </button>
-              <div style={{ fontWeight: 800, fontSize: 19, color: T.white }}>Hoe werkt het?</div>
-            </div>
+      {/* Desktop layout — sidebar + content */}
+      <div className="app-shell">
+
+        {/* Sidebar — alleen desktop */}
+        {!subScreen && !showHelp && (
+          <div className="sidebar-wrapper">
+            <SidebarNav
+              tab={tab}
+              setTab={setTab}
+              currentMember={currentMember}
+              onAvatarClick={() => setShowAvail(true)}
+              onHelpClick={() => setShowHelp(true)}
+            />
           </div>
-        ) : subScreen ? (
-          <SubHeader title={subTitle} onBack={goBack} />
-        ) : (
-          <NOSHeader
-            onAvatarClick={() => setShowAvail(true)}
-            onHelpClick={() => setShowHelp(true)}
-            currentMember={currentMember}
-          />
         )}
 
-        {/* Help overlay */}
-        {showHelp && <HelpScreen />}
+        {/* Main content */}
+        <div className="main-content">
 
-        {/* Screens */}
-        {!showHelp && (
-          activeActivity ? (
-            <ActivityDetailScreen
-              activity={activeActivity}
-              members={members}
-              currentMember={currentMember}
-              onBack={goBack}
-              onUpdated={handleActivityUpdated}
-              onDeleted={handleActivityDeleted}
-            />
-          ) : showNew ? (
-            <NewActivityScreen
-              availability={availability}
-              members={members}
-              wishlist={wishlist}
-              currentMember={currentMember}
-              onCreated={handleActivityCreated}
-              onBack={goBack}
-            />
-          ) : showAvail ? (
-            <AvailabilityScreen
-              availability={availability}
-              members={members}
-              currentMember={currentMember}
-              onSaved={() => { loadAvailability(); setShowAvail(false) }}
-            />
-          ) : tab === 'home' ? (
-            <HomeScreen
-              activities={activities.filter(a => a.status !== 'geweest')}
-              availability={availability}
-              members={members}
-              currentMember={currentMember}
-              onOpenActivity={setActiveActivity}
-              onOpenAvailability={() => setShowAvail(true)}
-              onNewActivity={() => setShowNew(true)}
-            />
-          ) : tab === 'wishlist' ? (
-            <WishlistScreen
-              wishlist={wishlist}
-              members={members}
-              currentMember={currentMember}
-              onUpdated={loadWishlist}
-            />
-          ) : (
-            <ArchiefScreen
-              activities={activities}
-              onOpenActivity={setActiveActivity}
-            />
-          )
-        )}
+          {/* Header — mobiel + subschermen */}
+          <div className="mobile-header">
+            {showHelp ? (
+              <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
+                <div style={{ padding: '10px 16px 14px' }}>
+                  <button onClick={() => setShowHelp(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '8px 16px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, minHeight: 38 }}>
+                    ‹ Terug
+                  </button>
+                  <div style={{ fontWeight: 800, fontSize: 19, color: T.white }}>Hoe werkt het?</div>
+                </div>
+              </div>
+            ) : subScreen ? (
+              <SubHeader title={subTitle} onBack={goBack} />
+            ) : (
+              <NOSHeader
+                onAvatarClick={() => setShowAvail(true)}
+                onHelpClick={() => setShowHelp(true)}
+                currentMember={currentMember}
+              />
+            )}
+          </div>
 
-        {/* Nav */}
-        {!subScreen && !showHelp && <BottomNav tab={tab} setTab={setTab} />}
+          {/* Desktop subheader */}
+          {(subScreen || showHelp) && (
+            <div className="desktop-subheader">
+              <div style={{ background: T.navBg, borderBottom: '1px solid #2a2a2a', padding: '16px 24px' }}>
+                <button onClick={showHelp ? () => setShowHelp(false) : goBack} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '7px 14px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  ‹ Terug
+                </button>
+                <div style={{ fontWeight: 800, fontSize: 20, color: T.white }}>
+                  {showHelp ? 'Hoe werkt het?' : subTitle}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Screens */}
+          {showHelp ? <HelpScreen /> : (
+            activeActivity ? (
+              <ActivityDetailScreen
+                activity={activeActivity}
+                members={members}
+                currentMember={currentMember}
+                onBack={goBack}
+                onUpdated={handleActivityUpdated}
+                onDeleted={handleActivityDeleted}
+              />
+            ) : showNew ? (
+              <NewActivityScreen
+                availability={availability}
+                members={members}
+                wishlist={wishlist}
+                currentMember={currentMember}
+                onCreated={handleActivityCreated}
+                onBack={goBack}
+              />
+            ) : showAvail ? (
+              <AvailabilityScreen
+                availability={availability}
+                members={members}
+                currentMember={currentMember}
+                onSaved={() => { loadAvailability(); setShowAvail(false) }}
+              />
+            ) : tab === 'home' ? (
+              <HomeScreen
+                activities={activities.filter(a => a.status !== 'geweest')}
+                availability={availability}
+                members={members}
+                currentMember={currentMember}
+                onOpenActivity={setActiveActivity}
+                onOpenAvailability={() => setShowAvail(true)}
+                onNewActivity={() => setShowNew(true)}
+              />
+            ) : tab === 'wishlist' ? (
+              <WishlistScreen
+                wishlist={wishlist}
+                members={members}
+                currentMember={currentMember}
+                onUpdated={loadWishlist}
+              />
+            ) : (
+              <ArchiefScreen
+                activities={activities}
+                onOpenActivity={setActiveActivity}
+              />
+            )
+          )}
+
+          {/* Bottom nav — alleen mobiel, alleen hoofdschermen */}
+          {!subScreen && !showHelp && (
+            <div className="mobile-nav">
+              <BottomNav tab={tab} setTab={setTab} />
+            </div>
+          )}
+        </div>
       </div>
     </>
   )
@@ -224,4 +260,50 @@ const globalStyles = `
   ::-webkit-scrollbar { display: none; }
   input::placeholder { color: #888; }
   button:disabled { opacity: 0.35; cursor: not-allowed !important; }
+
+  /* App shell — responsive */
+  .app-shell {
+    display: flex;
+    min-height: 100vh;
+    background: #f4f4f2;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Mobiel: sidebar verborgen, bottom nav zichtbaar */
+  .sidebar-wrapper { display: none; }
+  .mobile-header { display: flex; flex-direction: column; }
+  .mobile-nav { display: block; }
+  .desktop-subheader { display: none; }
+
+  /* Desktop (≥768px): sidebar zichtbaar, bottom nav verborgen */
+  @media (min-width: 768px) {
+    body { background: #1a1a1a; }
+
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .sidebar-wrapper { display: flex; }
+    .mobile-header { display: none; }
+    .mobile-nav { display: none; }
+    .desktop-subheader { display: block; }
+
+    .main-content {
+      background: #f4f4f2;
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    .desktop-stats { display: block !important; }
+  }
 `

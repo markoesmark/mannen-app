@@ -146,3 +146,66 @@ export const BottomNav = ({ tab, setTab }) => {
     </nav>
   )
 }
+
+export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpClick }) => {
+  const items = [
+    { id: 'home',     icon: '🏠', label: 'Home'    },
+    { id: 'wishlist', icon: '🗺️', label: 'Wishlist' },
+    { id: 'archief',  icon: '📦', label: 'Archief'  },
+  ]
+  return (
+    <nav style={{ width: 220, background: T.navBg, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
+      {/* Wordmark */}
+      <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #2a2a2a' }}>
+        <div style={{ background: T.red, borderRadius: 4, padding: '4px 10px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px', display: 'inline-block' }}>
+          MANNEN
+        </div>
+      </div>
+
+      {/* Nav items */}
+      <div style={{ flex: 1, padding: '12px 0' }}>
+        {items.map(({ id, icon, label }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 20px', background: 'none',
+              border: 'none', borderLeft: tab === id ? `3px solid ${T.red}` : '3px solid transparent',
+              cursor: 'pointer', color: tab === id ? T.white : '#888',
+              fontSize: 13, fontWeight: tab === id ? 700 : 400,
+              fontFamily: "'Outfit',sans-serif",
+              backgroundColor: tab === id ? 'rgba(255,255,255,0.05)' : 'transparent',
+              textAlign: 'left',
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{icon}</span>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Uitleg */}
+      <button
+        onClick={onHelpClick}
+        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', background: 'none', border: 'none', borderLeft: '3px solid transparent', cursor: 'pointer', color: '#888', fontSize: 13, fontFamily: "'Outfit',sans-serif", width: '100%', textAlign: 'left' }}
+      >
+        <span style={{ fontSize: 16 }}>❓</span> Uitleg
+      </button>
+
+      {/* User */}
+      <div
+        onClick={onAvatarClick}
+        style={{ padding: '14px 20px', borderTop: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+      >
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: T.red, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, flexShrink: 0 }}>
+          {currentMember?.name?.[0] || 'M'}
+        </div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>{currentMember?.name}</div>
+          <div style={{ fontSize: 11, color: '#888' }}>Beschikbaarheid →</div>
+        </div>
+      </div>
+    </nav>
+  )
+}
