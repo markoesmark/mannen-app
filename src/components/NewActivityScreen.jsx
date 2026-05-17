@@ -64,7 +64,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
         <div style={{ padding: '14px 16px' }}>
           <SectionTitle style={{ padding: 0, marginBottom: 10 }}>Van de wishlist?</SectionTitle>
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 14 }}>
-            {wishlist.map(w => (
+            {[...wishlist].sort((a, b) => (b.wishlist_votes?.length || 0) - (a.wishlist_votes?.length || 0)).map(w => (
               <div key={w.id} onClick={() => pickWish(w)} style={{ flexShrink: 0, minWidth: 130, background: fromWish?.id === w.id ? T.redLight : T.surface, border: `1px solid ${fromWish?.id === w.id ? T.red : T.border}`, borderRadius: 6, padding: '10px 12px', cursor: 'pointer' }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: T.text, marginBottom: 3 }}>{w.title}</div>
                 <div style={{ fontSize: 11, color: T.textMuted }}>📍 {w.location}</div>
