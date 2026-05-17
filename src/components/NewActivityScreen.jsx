@@ -158,7 +158,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
               min={new Date().toISOString().split('T')[0]}
               value={chosenDate || ''}
               onChange={e => setChosenDate(e.target.value)}
-              style={{ width: '100%', background: T.surfaceAlt, border: `1px solid ${chosenDate ? T.red : T.borderDark}`, borderRadius: 6, padding: '10px 12px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light', boxSizing: 'border-box' }}
+              style={{ width: 180, background: T.surfaceAlt, border: `1px solid ${chosenDate ? T.red : T.borderDark}`, borderRadius: 6, padding: '10px 12px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }}
             />
             {chosenDate && !fullDays.find(d => d.date === chosenDate) && !partialDays.find(d => d.date === chosenDate) && (
               <div style={{ marginTop: 10 }}>

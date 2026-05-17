@@ -283,6 +283,10 @@ const globalStyles = `
   .mobile-nav { display: block; }
   .desktop-subheader { display: none; }
 
+  /* Stats blokken */
+  .stats-mobile { display: flex; }
+  .desktop-stats { display: none !important; }
+
   /* Desktop (≥768px): sidebar zichtbaar, bottom nav verborgen */
   @media (min-width: 768px) {
     body { background: #1a1a1a; }
@@ -304,6 +308,7 @@ const globalStyles = `
       height: 100vh;
     }
 
-    .desktop-stats { display: block !important; }
+    .stats-mobile { display: none !important; }
+    .desktop-stats { display: flex !important; }
   }
 `

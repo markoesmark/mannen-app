@@ -36,28 +36,78 @@ export default function HomeScreen({ activities, availability, members, currentM
 
   const avatarColors = [T.red, '#e67e22', '#2980b9', '#27ae60']
 
+  // Bereken stats voor blokken
+  const eersteVrijeDatum = overlapDays[0]?.date || null
+  const openVoorMij = pending.find(a => !(a.confirmations?.map(c => c.member_id) || []).includes(currentMember?.id))
+  const eersteGepland = planned[0] || null
+
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
 
-      {/* Statistieken — alleen op desktop zichtbaar */}
-      <div style={{ display: 'none' }} className="desktop-stats">
-        <div style={{ padding: '20px 20px 0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 4 }}>
-          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>Iedereen vrij</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: overlapDays.length > 0 ? T.green : T.textMuted }}>{overlapDays.length}</div>
-            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>datums beschikbaar</div>
-          </div>
-          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>Open activiteiten</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: pending.length > 0 ? T.amber : T.textMuted }}>{pending.length}</div>
-            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>wacht op bevestiging</div>
-          </div>
-          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>Gepland</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: planned.length > 0 ? T.green : T.textMuted }}>{planned.length}</div>
-            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>activiteiten</div>
-          </div>
+      {/* Statistieken blokken — mobiel in header, desktop in content */}
+      <div className="stats-mobile" style={{ background: T.navBg, padding: '10px 14px 12px', display: 'flex', gap: 8 }}>
+        {/* Eerst vrije datum */}
+        <div style={{ flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '9px 10px' }}>
+          <div style={{ fontSize: 9, color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>Eerst vrij</div>
+          {eersteVrijeDatum ? (
+            <>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#34d399', lineHeight: 1.2 }}>{formatDate(eersteVrijeDatum)}</div>
+              <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>iedereen kan</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#888', lineHeight: 1.2 }}>—</div>
+              <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>geen overlap</div>
+            </>
+          )}
         </div>
+
+        {/* Jouw actie */}
+        <div style={{ flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '9px 10px' }}>
+          <div style={{ fontSize: 9, color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>Jouw actie</div>
+          {openVoorMij ? (
+            <>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#fbbf24', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{openVoorMij.title}</div>
+              <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>bevestig aanwezigheid</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#34d399', lineHeight: 1.2 }}>✓ niets</div>
+              <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>alles up-to-date</div>
+            </>
+          )}
+        </div>
+
+        {/* Eerstvolgende gepland */}
+        <div style={{ flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '9px 10px' }}>
+          <div style={{ fontSize: 9, color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 4 }}>Volgende</div>
+          {eersteGepland ? (
+            <>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#34d399', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{eersteGepland.title}</div>
+              <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>{formatDate(eersteGepland.best_date)}</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#888', lineHeight: 1.2 }}>—</div>
+              <div style={{ fontSize: 9, color: '#888', marginTop: 2 }}>niets gepland</div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop stats — grotere versie */}
+      <div className="desktop-stats" style={{ display: 'none', padding: '20px 20px 0', gap: 12, marginBottom: 4 }}>
+        {[
+          { label: 'Eerst vrij', value: eersteVrijeDatum ? formatDate(eersteVrijeDatum) : '—', sub: eersteVrijeDatum ? 'iedereen kan' : 'geen overlap', color: eersteVrijeDatum ? T.green : T.textMuted },
+          { label: 'Jouw actie', value: openVoorMij ? openVoorMij.title : '✓ niets', sub: openVoorMij ? 'bevestig aanwezigheid' : 'alles up-to-date', color: openVoorMij ? T.amber : T.green },
+          { label: 'Volgende', value: eersteGepland ? eersteGepland.title : '—', sub: eersteGepland ? formatDate(eersteGepland.best_date) : 'niets gepland', color: eersteGepland ? T.green : T.textMuted },
+        ].map(({ label, value, sub, color }) => (
+          <div key={label} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '14px 16px', flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: T.textMuted, marginBottom: 6 }}>{label}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color, marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+            <div style={{ fontSize: 11, color: T.textMuted }}>{sub}</div>
+          </div>
+        ))}
       </div>
 
       {/* Mijn beschikbaarheid */}
