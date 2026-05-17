@@ -96,6 +96,19 @@ export function buildWhatsAppUrl(phoneNumber, activity, appBaseUrl) {
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
 }
 
+export function buildNudgeWhatsApp(activityTitle, members, currentMember, appBaseUrl) {
+  const title = activityTitle ? ` voor *${activityTitle}*` : ''
+  const message = `Hey mannen! Ik wil iets plannen${title} maar er is nog geen beschikbaarheid opgegeven. Kunnen jullie even jullie beschikbaarheid invullen? ${appBaseUrl}`
+  return `https://wa.me/?text=${encodeURIComponent(message)}`
+}
+
+export function buildDateNudgeWhatsApp(activityTitle, chosenDate, appBaseUrl) {
+  const datum = formatDate(chosenDate)
+  const title = activityTitle ? `*${activityTitle}*` : 'een activiteit'
+  const message = `Hey mannen, ik wil ${title} plannen maar die datum vind ik niet top. Kunnen jullie meer beschikbaarheid opgeven? ${appBaseUrl}`
+  return `https://wa.me/?text=${encodeURIComponent(message)}`
+}
+
 export function buildGroupWhatsAppMessage(activity, members, confirmations, appBaseUrl) {
   const datum = formatDate(activity.best_date)
   const tijd = formatTijd(activity.start_time, activity.end_time)

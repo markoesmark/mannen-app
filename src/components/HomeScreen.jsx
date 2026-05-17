@@ -160,18 +160,18 @@ export default function HomeScreen({ activities, availability, members, currentM
 function calculateOverlap(availability, members) {
   if (!availability.length || !members.length) return []
 
-  // Verzamel alle unieke datums
+  const today = new Date().toISOString().split('T')[0]
+
+  // Verzamel alle unieke datums — alleen vandaag of later
   const allDates = new Set()
   availability.forEach(av => {
-    if (av.days) av.days.forEach(d => allDates.add(d))
+    if (av.days) av.days
+      .filter(d => d >= today)  // Fix 2: verleden datums weggooien
+      .forEach(d => allDates.add(d))
   })
 
-  // Filter op datums waar iedereen vrij is (inclusief verlopen = indicatief)
-  const today = new Date().toISOString().split('T')[0]
   const result = []
-
   allDates.forEach(date => {
-    if (date < today) return // verleden overslaan
     const whoCanGo = members.filter(m => {
       const av = availability.find(a => a.member_id === m.id)
       return av?.days?.includes(date)

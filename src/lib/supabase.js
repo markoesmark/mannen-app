@@ -135,18 +135,24 @@ export async function confirmActivity(activityId, memberId) {
     .upsert({ activity_id: activityId, member_id: memberId }, { onConflict: 'activity_id,member_id' })
   if (error) throw error
 
-  // Check of iedereen bevestigd heeft → zet op 'gepland'
-  const { data: members } = await supabase.from('members').select('id')
-  const { data: confirmations } = await supabase
-    .from('confirmations')
-    .select('member_id')
-    .eq('activity_id', activityId)
+  // Fix 4: check of iedereen bevestigd heeft en update status
+  // Haal zowel members als confirmations op in één keer
+  const [{ data: members }, { data: confirmations }] = await Promise.all([
+    supabase.from('members').select('id'),
+    supabase.from('confirmations').select('member_id').eq('activity_id', activityId),
+  ])
 
   if (members && confirmations && confirmations.length >= members.length) {
-    await supabase
+    const { error: updateError } = await supabase
       .from('activities')
       .update({ status: 'gepland' })
       .eq('id', activityId)
+
+    // Als de update faalt, gooi een duidelijke fout
+    if (updateError) {
+      console.error('Status update mislukt:', updateError)
+      throw new Error('Bevestiging opgeslagen maar status kon niet worden bijgewerkt. Probeer de app te herladen.')
+    }
   }
 }
 

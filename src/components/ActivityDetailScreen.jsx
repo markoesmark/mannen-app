@@ -7,8 +7,10 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(activity.title)
   const [location, setLocation] = useState(activity.location)
+  const [bestDate, setBestDate] = useState(activity.best_date || '')
   const [startTime, setStartTime] = useState(activity.start_time || '')
   const [endTime, setEndTime] = useState(activity.end_time || '')
+  const [timeError, setTimeError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -21,9 +23,21 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
   const appBaseUrl = window.location.origin
 
   const handleSaveEdit = async () => {
+    // Fix 3: tijdvalidatie
+    if (startTime && endTime && endTime <= startTime) {
+      setTimeError('Eindtijd moet na begintijd liggen')
+      return
+    }
+    setTimeError('')
     setSaving(true)
     try {
-      const updated = await updateActivity(activity.id, { title, location, start_time: startTime, end_time: endTime || null })
+      const updated = await updateActivity(activity.id, {
+        title,
+        location,
+        best_date: bestDate,
+        start_time: startTime,
+        end_time: endTime || null,
+      })
       onUpdated(updated)
       setEditing(false)
     } catch (e) {
@@ -84,23 +98,32 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
               <Inp value={title} onChange={e => setTitle(e.target.value)} placeholder="Activiteit" />
               <Lbl>Locatie</Lbl>
               <Inp value={location} onChange={e => setLocation(e.target.value)} placeholder="Locatie" />
-              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginBottom: 10 }}>
+              <Lbl>Datum</Lbl>
+              <input
+                type="date"
+                value={bestDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setBestDate(e.target.value)}
+                style={{ width: '100%', background: T.surfaceAlt, border: `1px solid ${T.borderDark}`, borderRadius: 6, padding: '11px 13px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', marginBottom: 10, colorScheme: 'light', boxSizing: 'border-box' }}
+              />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginBottom: timeError ? 4 : 10 }}>
                 <div>
                   <Lbl>Begintijd</Lbl>
-                  <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
-                    style={{ width: 110, background: T.surfaceAlt, border: `1px solid ${T.borderDark}`, borderRadius: 6, padding: '8px 10px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }} />
+                  <input type="time" value={startTime} onChange={e => { setStartTime(e.target.value); setTimeError('') }}
+                    style={{ width: 110, background: T.surfaceAlt, border: `1px solid ${timeError ? T.red : T.borderDark}`, borderRadius: 6, padding: '8px 10px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }} />
                 </div>
                 <div style={{ paddingBottom: 10, color: T.textMuted, fontWeight: 700, fontSize: 15, flexShrink: 0 }}>–</div>
                 <div>
                   <Lbl>Eindtijd</Lbl>
-                  <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
-                    style={{ width: 110, background: T.surfaceAlt, border: `1px solid ${T.borderDark}`, borderRadius: 6, padding: '8px 10px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }} />
+                  <input type="time" value={endTime} onChange={e => { setEndTime(e.target.value); setTimeError('') }}
+                    style={{ width: 110, background: T.surfaceAlt, border: `1px solid ${timeError ? T.red : T.borderDark}`, borderRadius: 6, padding: '8px 10px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }} />
                 </div>
                 <div style={{ paddingBottom: 9, fontSize: 11, color: T.textMuted, flexShrink: 0 }}>optioneel</div>
               </div>
+              {timeError && <div style={{ fontSize: 11, color: T.red, fontWeight: 600, marginBottom: 10 }}>{timeError}</div>}
               <div style={{ display: 'flex', gap: 8 }}>
-                <Btn onClick={handleSaveEdit} disabled={saving} small>{saving ? 'Opslaan…' : 'Opslaan'}</Btn>
-                <Btn variant="ghost" onClick={() => { setTitle(activity.title); setLocation(activity.location); setStartTime(activity.start_time || ''); setEndTime(activity.end_time || ''); setEditing(false) }} small>Annuleren</Btn>
+                <Btn onClick={handleSaveEdit} disabled={saving || !bestDate} small>{saving ? 'Opslaan…' : 'Opslaan'}</Btn>
+                <Btn variant="ghost" onClick={() => { setTitle(activity.title); setLocation(activity.location); setBestDate(activity.best_date || ''); setStartTime(activity.start_time || ''); setEndTime(activity.end_time || ''); setTimeError(''); setEditing(false) }} small>Annuleren</Btn>
               </div>
             </>
           ) : (
