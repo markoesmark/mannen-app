@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Environment variables — nooit naar GitHub!
+.env.local
+.env.*.local
+.env
+
+# Build output
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
