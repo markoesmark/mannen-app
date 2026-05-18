@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { T } from '../lib/helpers.js'
-import { adminGetAllGroups, adminGetAllMembers, adminResetPin, deleteGroup } from '../lib/supabase.js'
+import { adminGetAllGroups, adminGetAllMembers, adminGetStats, adminResetPin, deleteGroup } from '../lib/supabase.js'
 import { SectionTitle, Divider } from './UI.jsx'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wanneer-admin'
@@ -11,6 +11,7 @@ export default function AdminScreen() {
   const [error, setError] = useState('')
   const [groups, setGroups] = useState([])
   const [members, setMembers] = useState([])
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [resetPinFor, setResetPinFor] = useState(null)
@@ -22,11 +23,17 @@ export default function AdminScreen() {
   async function loadData() {
     setLoading(true)
     try {
-      const [g, m] = await Promise.all([adminGetAllGroups(), adminGetAllMembers()])
+      const [g, m, s] = await Promise.all([adminGetAllGroups(), adminGetAllMembers(), adminGetStats()])
       setGroups(g)
       setMembers(m)
+      setStats(s)
     } catch (e) { console.error(e) }
     setLoading(false)
+  }
+
+  function formatDate(ts) {
+    if (!ts) return '—'
+    return new Date(ts).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   const handleUnlock = () => {
@@ -80,17 +87,32 @@ export default function AdminScreen() {
     <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
 
       {/* Statistieken */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, padding: '16px 16px 4px' }}>
-        {[
-          ['Groepen', groups.length, T.accent],
-          ['Leden', members.length, T.green],
-          ['Actief', groups.reduce((sum, g) => sum + (g.activities?.[0]?.count || 0), 0), T.amber],
-        ].map(([label, val, color]) => (
-          <div key={label} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '12px 14px' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: T.textMuted, marginBottom: 4 }}>{label}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color }}>{val}</div>
-          </div>
-        ))}
+      <div style={{ padding: '16px 16px 4px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+          {[
+            ['Groepen', groups.length, T.accent],
+            ['Leden', members.length, T.green],
+            ['Vrije dagen', stats?.totalFutureDays ?? '…', T.amber],
+          ].map(([label, val, color]) => (
+            <div key={label} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '12px 14px' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: T.textMuted, marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color }}>{val}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+          {[
+            ['Totaal afspraken', stats?.totalActivities ?? '…', T.text],
+            ['Gepland', stats?.gepland ?? '…', T.green],
+            ['Te bevestigen', stats?.bevestigen ?? '…', T.amber],
+            ['Geweest', stats?.geweest ?? '…', T.textMuted],
+          ].map(([label, val, color]) => (
+            <div key={label} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 8, padding: '10px 12px' }}>
+              <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: T.textMuted, marginBottom: 4 }}>{label}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color }}>{val}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Alle groepen */}
@@ -126,14 +148,22 @@ export default function AdminScreen() {
       {/* Alle leden */}
       <SectionTitle>Alle leden</SectionTitle>
       <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}` }}>
-        {members.map((m, i) => (
+        {members.map((m, i) => {
+          const today = new Date().toISOString().split('T')[0]
+          const avail = m.availability?.[0]
+          const futureDays = (avail?.days || []).filter(d => d >= today).length
+          return (
           <div key={m.id}>
             <div style={{ padding: '12px 16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{m.name}</div>
                   <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>
-                    {m.group_members?.[0]?.count || 0} groep(en)
+                    {m.group_members?.[0]?.count || 0} groep(en) · lid sinds {formatDate(m.created_at)}
+                  </div>
+                  <div style={{ fontSize: 11, color: futureDays > 0 ? T.green : T.textMuted, marginTop: 1 }}>
+                    {futureDays > 0 ? `${futureDays} vrije dagen opgegeven` : 'Geen beschikbaarheid'}
+                    {avail?.updated_at ? ` · bijgewerkt ${formatDate(avail.updated_at)}` : ''}
                   </div>
                 </div>
                 {resetSuccess === m.id ? (
@@ -156,7 +186,8 @@ export default function AdminScreen() {
             </div>
             {i < members.length - 1 && <Divider />}
           </div>
-        ))}
+        )})}
+
       </div>
 
       {/* Uitloggen */}

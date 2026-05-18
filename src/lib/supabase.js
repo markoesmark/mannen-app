@@ -322,9 +322,33 @@ export async function adminGetAllGroups() {
 
 export async function adminGetAllMembers() {
   const { data, error } = await supabase
-    .from('members').select('*, group_members(count)').order('name')
+    .from('members')
+    .select('*, group_members(count), availability(days, updated_at)')
+    .order('created_at')
   if (error) throw error
   return data
+}
+
+export async function adminGetStats() {
+  const [{ data: acts }, { data: avail }] = await Promise.all([
+    supabase.from('activities').select('status'),
+    supabase.from('availability').select('days'),
+  ])
+  const today = new Date().toISOString().split('T')[0]
+  const totalFutureDays = (avail || []).reduce(
+    (sum, a) => sum + (a.days || []).filter(d => d >= today).length, 0
+  )
+  const byStatus = (acts || []).reduce((acc, a) => {
+    acc[a.status] = (acc[a.status] || 0) + 1
+    return acc
+  }, {})
+  return {
+    totalActivities: acts?.length || 0,
+    gepland: byStatus.gepland || 0,
+    geweest: byStatus.geweest || 0,
+    bevestigen: byStatus.bevestigen || 0,
+    totalFutureDays,
+  }
 }
 
 export async function adminResetPin(memberId, newPin) {
