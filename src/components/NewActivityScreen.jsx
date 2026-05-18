@@ -33,6 +33,7 @@ export default function NewActivityScreen({ availability, members, wishlist, act
       .filter(a => a.status === 'bevestigen' || a.status === 'gepland')
       .map(a => a.best_date)
   )
+  const freeFullDays = fullDays.filter(d => !reservedDates.has(d.date))
 
   const handleCreate = async () => {
     if (startTime && endTime && endTime <= startTime) {
@@ -212,7 +213,7 @@ export default function NewActivityScreen({ availability, members, wishlist, act
           <div style={{ marginTop: 8 }}>
             <Btn onClick={() => setStep(3)} disabled={!chosenDate || !startTime}>Volgende →</Btn>
             <Btn variant="ghost" onClick={() => setStep(1)}>← Terug</Btn>
-            {partialDays.length > 0 && fullDays.length === 0 && (
+            {partialDays.length > 0 && freeFullDays.length === 0 && (
               <a
                 href={buildNudgeWhatsApp(title || fromWish?.title, window.location.origin)}
                 target="_blank"
