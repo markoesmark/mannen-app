@@ -218,7 +218,7 @@ export default function NewActivityScreen({ availability, members, wishlist, act
                 href={buildNudgeWhatsApp(title || fromWish?.title, window.location.origin)}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'block', width: '100%', padding: '10px', borderRadius: 4, border: `1px solid ${T.border}`, background: 'transparent', color: T.textMuted, fontSize: 12, fontWeight: 600, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box', marginTop: 4 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '12px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box', marginTop: 4 }}
               >
                 📲 Vraag de groep meer beschikbaarheid in te vullen
               </a>
