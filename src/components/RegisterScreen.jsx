@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { T } from '../lib/helpers.js'
 import { registerMember, createGroup, validateAndJoinViaToken } from '../lib/supabase.js'
 
-export default function RegisterScreen({ onDone, onBack, inviteToken = null }) {
-  const [step, setStep] = useState(1)
+export default function RegisterScreen({ onDone, onBack, inviteToken = null, currentMember = null }) {
+  const [step, setStep] = useState(currentMember ? 3 : 1)
   const [naam, setNaam] = useState('')
   const [pin, setPin] = useState('')
   const [pin2, setPin2] = useState('')
@@ -15,9 +15,12 @@ export default function RegisterScreen({ onDone, onBack, inviteToken = null }) {
   const handleRegistreer = async (type) => {
     setLoading(true); setError('')
     try {
-      const member = await registerMember(naam.trim(), pin)
-      localStorage.setItem('wanneer_member_id', member.id)
-      localStorage.setItem('wanneer_member_name', member.name)
+      let member = currentMember
+      if (!member) {
+        member = await registerMember(naam.trim(), pin)
+        localStorage.setItem('wanneer_member_id', member.id)
+        localStorage.setItem('wanneer_member_name', member.name)
+      }
 
       if (type === 'nieuw') {
         const group = await createGroup(groepNaam.trim() || 'Mijn groep', member.id)
@@ -39,11 +42,13 @@ export default function RegisterScreen({ onDone, onBack, inviteToken = null }) {
       <div style={{ background: T.accent, borderRadius: 8, padding: '6px 16px', fontWeight: 900, fontSize: 22, color: T.white, letterSpacing: '-0.5px', marginBottom: 32 }}>wanneer</div>
 
       {/* Stap indicator */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 28, width: '100%', maxWidth: 300 }}>
-        {[1, 2, 3].map(n => (
-          <div key={n} style={{ flex: 1, height: 3, borderRadius: 100, background: n <= step ? T.accent : '#333', transition: 'background 0.3s' }} />
-        ))}
-      </div>
+      {!currentMember && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 28, width: '100%', maxWidth: 300 }}>
+          {[1, 2, 3].map(n => (
+            <div key={n} style={{ flex: 1, height: 3, borderRadius: 100, background: n <= step ? T.accent : '#333', transition: 'background 0.3s' }} />
+          ))}
+        </div>
+      )}
 
       <div style={{ width: '100%', maxWidth: 300 }}>
         {/* Stap 1: Naam */}
@@ -126,7 +131,7 @@ export default function RegisterScreen({ onDone, onBack, inviteToken = null }) {
 
             {error && <div style={{ fontSize: 12, color: T.red, marginBottom: 8, textAlign: 'center' }}>{error}</div>}
 
-            <button onClick={() => setStep(2)}
+            <button onClick={() => currentMember ? onBack() : setStep(2)}
               style={{ width: '100%', padding: '11px', borderRadius: 8, border: '1px solid #333', background: 'transparent', color: '#888', fontFamily: "'Outfit',sans-serif", fontSize: 13, cursor: 'pointer' }}>
               ← Terug
             </button>

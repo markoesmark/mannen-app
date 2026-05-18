@@ -99,14 +99,14 @@ export const DayCell = ({ selected, count, total, onClick, children, past }) => 
   )
 }
 
-export const NOSHeader = ({ onAvatarClick, onHelpClick, currentMember, groupNaam, onBack }) => (
+export const NOSHeader = ({ onAvatarClick, onHelpClick, onLogoClick, currentMember, groupNaam, onBack }) => (
   <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
     <div style={{ padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {onBack && (
           <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#888', fontSize: 13, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>‹</button>
         )}
-        <div style={{ background: T.accent, borderRadius: 4, padding: '3px 9px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px' }}>
+        <div onClick={onLogoClick} style={{ background: T.accent, borderRadius: 4, padding: '4px 10px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px', display: 'inline-block', cursor: onLogoClick ? 'pointer' : 'default' }}>
           wanneer
         </div>
         {groupNaam && <div style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{groupNaam}</div>}
@@ -167,11 +167,6 @@ export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpCl
           wanneer
         </div>
         {groupNaam && <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{groupNaam}</div>}
-        {onBack && (
-          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: '#888', fontSize: 12, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", marginTop: 8, padding: 0 }}>
-            ‹ Alle groepen
-          </button>
-        )}
       </div>
 
       {/* Nav items */}

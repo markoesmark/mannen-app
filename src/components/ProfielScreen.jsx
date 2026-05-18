@@ -3,7 +3,7 @@ import { T } from '../lib/helpers.js'
 import { changePin } from '../lib/supabase.js'
 import { Btn, Lbl, SectionTitle, Divider } from './UI.jsx'
 
-export default function ProfielScreen({ currentMember, groups, onLogout }) {
+export default function ProfielScreen({ currentMember, groups, onLogout, onOpenGroup, onNewGroup }) {
   const [step, setStep] = useState(1) // 1=overzicht, 2=pin wijzigen
   const [huidig, setHuidig] = useState('')
   const [nieuw, setNieuw] = useState('')
@@ -47,12 +47,13 @@ export default function ProfielScreen({ currentMember, groups, onLogout }) {
       <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}` }}>
         {groups.map((g, i) => (
           <div key={g.id}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+            <div onClick={() => onOpenGroup?.(g)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: onOpenGroup ? 'pointer' : 'default' }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: g.color || T.accent, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{g.naam}</div>
                 <div style={{ fontSize: 11, color: T.textMuted }}>{g.rol}</div>
               </div>
+              {onOpenGroup && <span style={{ color: T.textMuted, fontSize: 16 }}>›</span>}
             </div>
             {i < groups.length - 1 && <Divider />}
           </div>
@@ -62,6 +63,11 @@ export default function ProfielScreen({ currentMember, groups, onLogout }) {
             Nog geen groepen
           </div>
         )}
+        <div style={{ padding: '10px 16px 14px' }}>
+          <button onClick={onNewGroup} style={{ width: '100%', padding: '10px', background: 'transparent', border: `1px dashed ${T.borderDark}`, borderRadius: 4, color: T.textMuted, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
+            + Nieuwe groep aanmaken of joinen
+          </button>
+        </div>
       </div>
 
       {/* Pincode wijzigen */}

@@ -13,7 +13,7 @@ import {
 import { NOSHeader, SubHeader, BottomNav, SidebarNav } from './components/UI.jsx'
 import LoginScreen from './components/LoginScreen.jsx'
 import RegisterScreen from './components/RegisterScreen.jsx'
-import DashboardScreen from './components/DashboardScreen.jsx'
+import GroupSwitcher from './components/GroupSwitcher.jsx'
 import ProfielScreen from './components/ProfielScreen.jsx'
 import GroupBeheerScreen from './components/GroupBeheerScreen.jsx'
 import HomeScreen from './components/HomeScreen.jsx'
@@ -40,7 +40,7 @@ export default function App() {
   const [wishlist, setWishlist] = useState([])
 
   // ── Navigation ────────────────────────────────────────────────────────────
-  const [view, setView] = useState('dashboard') // dashboard | group | profiel | beheer | admin
+  const [view, setView] = useState('group') // group | profiel | beheer | admin
   const [tab, setTab] = useState('home')
   const [activeActivity, setActiveActivity] = useState(null)
   const [showNew, setShowNew] = useState(false)
@@ -100,23 +100,18 @@ export default function App() {
   async function loadGroups() {
     try {
       const data = await getGroupsForMember(currentMember.id)
-      const groupsWithMembers = await Promise.all(
+      const groupsWithData = await Promise.all(
         data.map(async g => {
           const members = await getGroupWithMembers(g.id)
-          return { ...g, leden: members, memberIds: members.map(m => m.id) }
+          const activities = await getActivitiesForGroup(g.id)
+          return { ...g, leden: members, memberIds: members.map(m => m.id), activities }
         })
       )
-      setGroups(groupsWithMembers)
+      setGroups(groupsWithData)
+      setActivities(groupsWithData.flatMap(g => g.activities))
 
-      // Laad activiteiten voor alle groepen voor dashboard stats
-      const allActivities = await Promise.all(
-        groupsWithMembers.map(g => getActivitiesForGroup(g.id))
-      )
-      setActivities(allActivities.flat())
-
-      // Als er maar één groep is, die meteen openen
-      if (groupsWithMembers.length === 1 && !activeGroup) {
-        await openGroup(groupsWithMembers[0])
+      if (groupsWithData.length > 0 && !activeGroup) {
+        await openGroup(groupsWithData[0])
       }
     } catch (e) { console.error(e) }
   }
@@ -150,8 +145,10 @@ export default function App() {
 
   async function loadActivities(groupId) {
     try {
-      const data = await getActivitiesForGroup(groupId || activeGroup?.id)
+      const gId = groupId || activeGroup?.id
+      const data = await getActivitiesForGroup(gId)
       setActivities(data)
+      setGroups(prev => prev.map(g => g.id === gId ? { ...g, activities: data } : g))
     } catch (e) { console.error(e) }
   }
 
@@ -209,12 +206,12 @@ export default function App() {
     setShowBeheer(false)
   }
 
-  const goBackToDashboard = () => {
-    setView('dashboard')
+  const handleGroupDeleted = async () => {
     setActiveGroup(null)
     setActivities([])
     setWishlist([])
     goBackToGroup()
+    await loadGroups()
   }
 
   // ── Admin route ───────────────────────────────────────────────────────────
@@ -252,8 +249,9 @@ export default function App() {
       <style>{globalStyles}</style>
       <RegisterScreen
         onDone={(member, group) => { handleLogin(member); if (group) openGroup(group) }}
-        onBack={() => setAppState('login')}
+        onBack={() => currentMember ? setAppState('app') : setAppState('login')}
         inviteToken={localStorage.getItem('wanneer_pending_token')}
+        currentMember={currentMember}
       />
     </>
   )
@@ -265,7 +263,6 @@ export default function App() {
     : showBeheer ? `${activeGroup?.naam} — beheer`
     : 'Mijn beschikbaarheid'
 
-  // Bepaal of we in een groep-context zitten (sidebar tonen op desktop)
   const inGroup = view === 'group'
 
   // ── App ───────────────────────────────────────────────────────────────────
@@ -284,17 +281,14 @@ export default function App() {
               currentMember={currentMember}
               onAvatarClick={() => setView('profiel')}
               onHelpClick={() => setShowHelp(true)}
-              onBack={goBackToDashboard}
-              groupNaam={activeGroup?.naam}
             />
           </div>
         )}
 
         <div className="main-content">
 
-          {/* Eén header — mobile toont altijd, desktop alleen bij niet-subschermen */}
+          {/* Header */}
           {showHelp ? (
-            /* Help header — altijd zichtbaar */
             <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
               <div style={{ padding: '10px 16px 14px' }}>
                 <button onClick={() => setShowHelp(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '8px 16px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, minHeight: 38 }}>‹ Terug</button>
@@ -302,45 +296,40 @@ export default function App() {
               </div>
             </div>
           ) : subScreen ? (
-            /* Subscherm header — altijd zichtbaar, één keer */
             <SubHeader title={subTitle} onBack={goBackToGroup} />
           ) : view === 'profiel' ? (
-            /* Profiel header */
-            <SubHeader title="Mijn profiel" onBack={() => setView('dashboard')} />
-          ) : view === 'dashboard' ? (
-            /* Dashboard — eigen header in DashboardScreen zelf */
-            null
+            <SubHeader title="Mijn profiel" onBack={() => setView('group')} />
           ) : (
-            /* Groep home/wishlist/archief — mobile header, op desktop verborgen via CSS */
             <div className="mobile-header">
               <NOSHeader
-                onAvatarClick={() => setShowAvail(true)}
+                onLogoClick={() => setTab('home')}
+                onAvatarClick={() => setView('profiel')}
                 onHelpClick={() => setShowHelp(true)}
                 currentMember={currentMember}
-                groupNaam={activeGroup?.naam}
-                onBack={goBackToDashboard}
               />
             </div>
           )}
 
+          {/* GroupSwitcher — statusbalk boven groepsinhoud */}
+          {!subScreen && !showHelp && view === 'group' && groups.length > 0 && (
+            <GroupSwitcher
+              groups={groups}
+              availability={availability}
+              activeGroup={activeGroup}
+              onSwitch={openGroup}
+              currentMember={currentMember}
+            />
+          )}
+
           {/* Screens */}
           {showHelp ? <HelpScreen /> : (
-            view === 'dashboard' ? (
-              <DashboardScreen
-                groups={groups}
-                availability={availability}
-                activities={activities}
-                currentMember={currentMember}
-                onOpenGroup={openGroup}
-                onNewGroup={() => setAppState('register')}
-                onOpenAvailability={() => setShowAvail(true)}
-                onProfiel={() => setView('profiel')}
-              />
-            ) : view === 'profiel' ? (
+            view === 'profiel' ? (
               <ProfielScreen
                 currentMember={currentMember}
                 groups={groups}
                 onLogout={handleLogout}
+                onOpenGroup={openGroup}
+                onNewGroup={() => setAppState('register')}
               />
             ) : subScreen ? (
               activeActivity ? (
@@ -368,7 +357,7 @@ export default function App() {
                   members={groupMembers}
                   currentMember={currentMember}
                   onBack={goBackToGroup}
-                  onGroupDeleted={goBackToDashboard}
+                  onGroupDeleted={handleGroupDeleted}
                   onGroupUpdated={() => { loadGroups(); loadGroupMembers() }}
                 />
               ) : (
@@ -379,6 +368,13 @@ export default function App() {
                   onSaved={() => { loadAvailability(); setShowAvail(false) }}
                 />
               )
+            ) : !activeGroup ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32, background: T.bg }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: T.textMuted }}>Nog geen groepen</div>
+                <button onClick={() => setAppState('register')} style={{ padding: '12px 24px', background: T.accent, color: T.white, border: 'none', borderRadius: 6, fontFamily: "'Outfit',sans-serif", fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                  + Groep aanmaken of joinen
+                </button>
+              </div>
             ) : tab === 'home' ? (
               <HomeScreen
                 activities={activities.filter(a => a.status !== 'geweest')}

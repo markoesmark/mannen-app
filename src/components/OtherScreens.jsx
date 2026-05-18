@@ -55,7 +55,7 @@ export function HelpScreen() {
     {
       icon: '👥',
       title: '2. Groepen',
-      text: 'Je kunt lid zijn van meerdere groepen — bv. "Vrienden" en "Familie". Elke groep heeft zijn eigen activiteiten en wishlist. Op het dashboard zie je in één oogopslag wat er speelt per groep.',
+      text: 'Je kunt lid zijn van meerdere groepen — bv. "Vrienden" en "Familie". Elke groep heeft zijn eigen activiteiten en wishlist. Bovenaan zie je per groep in één oogopslag de eerstvolgende vrije datum, of er iets van jou gevraagd wordt, en wat er gepland staat. Overschakelen tussen groepen doe je via je profiel (tik rechtsboven op jouw initiaal).',
     },
     {
       icon: '📲',
@@ -65,12 +65,12 @@ export function HelpScreen() {
     {
       icon: '📅',
       title: '4. Beschikbaarheid opgeven',
-      text: 'Tik op "Mijn beschikbaarheid" op het dashboard. Klik de dagen aan waarop jij vrij bent. Dit geldt automatisch voor al je groepen — je hoeft het maar één keer in te vullen. Na twee weken verloopt het en vraagt de app je het bij te werken.',
+      text: 'Tik op "Mijn beschikbaarheid" op de Home tab. Klik de dagen aan waarop jij vrij bent. Dit geldt automatisch voor al je groepen — je hoeft het maar één keer in te vullen. Na twee weken verloopt het en vraagt de app je het bij te werken.',
     },
     {
       icon: '👀',
       title: '5. Zie wanneer iedereen kan',
-      text: 'De app laat per groep meteen zien op welke dagen iedereen vrij is. Groen = iedereen kan. De statistieken bovenaan tonen de eerstvolgende vrije datum, of er iets van jou gevraagd wordt, en wat de volgende geplande activiteit is.',
+      text: 'De app laat per groep meteen zien op welke dagen iedereen vrij is. Groen = iedereen kan. De statusbalk bovenaan toont de eerstvolgende vrije datum, of er iets van jou gevraagd wordt, en wat de volgende geplande activiteit is.',
     },
     {
       icon: '🎯',

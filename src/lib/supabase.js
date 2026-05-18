@@ -22,11 +22,13 @@ export async function verifyPin(memberId, pin) {
 }
 
 export async function setPin(memberId, pin) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('members')
     .update({ pin_hash: pin, pin_set: true })
     .eq('id', memberId)
+    .select('id')
   if (error) throw error
+  if (!data || data.length === 0) throw new Error('Pincode opslaan mislukt — ontbrekende schrijfrechten in de database. Voer de RLS-fix uit in Supabase.')
 }
 
 export async function changePin(memberId, currentPin, newPin) {
