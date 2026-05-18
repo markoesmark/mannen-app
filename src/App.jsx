@@ -346,6 +346,7 @@ export default function App() {
                   availability={availability}
                   members={groupMembers}
                   wishlist={wishlist}
+                  activities={activities.filter(a => a.status !== 'geweest')}
                   currentMember={currentMember}
                   groupId={activeGroup?.id}
                   onCreated={handleActivityCreated}

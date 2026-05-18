@@ -3,7 +3,7 @@ import { T, generateWeeks, formatDate, formatTijd, isExpired, buildGroupWhatsApp
 import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
-export default function NewActivityScreen({ availability, members, wishlist, currentMember, groupId, onCreated, onBack }) {
+export default function NewActivityScreen({ availability, members, wishlist, activities, currentMember, groupId, onCreated, onBack }) {
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState('')
   const [location, setLocation] = useState('')
@@ -26,6 +26,13 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
   const topDays = calculateTopDays(availability, members, today)
   const fullDays = topDays.filter(d => d.who.length === members.length)
   const partialDays = topDays.filter(d => d.who.length < members.length)
+
+  // Gereserveerde datums (bevestigen of gepland)
+  const reservedDates = new Set(
+    (activities || [])
+      .filter(a => a.status === 'bevestigen' || a.status === 'gepland')
+      .map(a => a.best_date)
+  )
 
   const handleCreate = async () => {
     if (startTime && endTime && endTime <= startTime) {
@@ -93,15 +100,22 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           {fullDays.length > 0 && (
             <>
               <SectionTitle style={{ padding: 0, marginBottom: 10 }}>Iedereen vrij 🎉</SectionTitle>
-              {fullDays.map(({ date, who, hasExpired }) => (
-                <div key={date} onClick={() => setChosenDate(date)} style={{ background: chosenDate === date ? (hasExpired ? T.amberBg : T.greenBg) : T.surface, border: `1px solid ${chosenDate === date ? (hasExpired ? T.amberBorder : T.greenBorder) : T.border}`, borderRadius: 6, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: chosenDate === date ? (hasExpired ? T.amber : T.green) : T.text }}>{formatDate(date)}</div>
-                    <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{hasExpired ? '⚠ indicatief — ' : ''}4/4 kunnen</div>
+              {fullDays.map(({ date, who, hasExpired }) => {
+                const reserved = reservedDates.has(date)
+                const reservedFor = reserved ? (activities || []).find(a => a.best_date === date && (a.status === 'bevestigen' || a.status === 'gepland')) : null
+                return (
+                  <div key={date} onClick={() => setChosenDate(date)} style={{ background: chosenDate === date ? (hasExpired ? T.amberBg : T.greenBg) : reserved ? T.surfaceAlt : T.surface, border: `1px solid ${chosenDate === date ? (hasExpired ? T.amberBorder : T.greenBorder) : reserved ? T.borderDark : T.border}`, borderRadius: 6, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, opacity: reserved ? 0.7 : 1 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: chosenDate === date ? (hasExpired ? T.amber : T.green) : T.text }}>{formatDate(date)}</div>
+                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>
+                        {hasExpired ? '⚠ indicatief — ' : ''}{who.length}/{members.length} kunnen
+                        {reserved && ` · al bezet: ${reservedFor?.title}`}
+                      </div>
+                    </div>
+                    {chosenDate === date ? <span style={{ color: hasExpired ? T.amber : T.green, fontWeight: 800 }}>✓</span> : reserved && <span style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>bezet</span>}
                   </div>
-                  {chosenDate === date && <span style={{ color: hasExpired ? T.amber : T.green, fontWeight: 800 }}>✓</span>}
-                </div>
-              ))}
+                )
+              })}
             </>
           )}
 
@@ -112,13 +126,17 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
                 const namen = who.length === 1
                   ? `${who[0].name} kan`
                   : `${who.map(m => m.name).join(', ')} kunnen`
+                const reserved = reservedDates.has(date)
+                const reservedFor = reserved ? (activities || []).find(a => a.best_date === date && (a.status === 'bevestigen' || a.status === 'gepland')) : null
                 return (
-                  <div key={date} onClick={() => setChosenDate(date)} style={{ background: chosenDate === date ? T.amberBg : T.surface, border: `1px solid ${chosenDate === date ? T.amberBorder : T.border}`, borderRadius: 6, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <div key={date} onClick={() => setChosenDate(date)} style={{ background: chosenDate === date ? T.amberBg : reserved ? T.surfaceAlt : T.surface, border: `1px solid ${chosenDate === date ? T.amberBorder : reserved ? T.borderDark : T.border}`, borderRadius: 6, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, opacity: reserved ? 0.7 : 1 }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 13, color: chosenDate === date ? T.amber : T.text }}>{formatDate(date)}</div>
-                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{namen}</div>
+                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>
+                        {namen}{reserved && ` · al bezet: ${reservedFor?.title}`}
+                      </div>
                     </div>
-                    <span style={{ fontSize: 12, color: T.amber, fontWeight: 800 }}>{who.length}/{members.length}</span>
+                    {chosenDate === date ? <span style={{ fontSize: 12, color: T.amber, fontWeight: 800 }}>✓</span> : reserved ? <span style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>bezet</span> : <span style={{ fontSize: 12, color: T.amber, fontWeight: 800 }}>{who.length}/{members.length}</span>}
                   </div>
                 )
               })}
@@ -126,10 +144,20 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           )}
 
           {fullDays.length === 0 && partialDays.length === 0 && (
-            <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
-              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
-            </div>
+            <>
+              <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
+                <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
+              </div>
+              <a
+                href={buildNudgeWhatsApp(title || fromWish?.title, window.location.origin)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '12px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box', marginBottom: 16 }}
+              >
+                📲 Vraag de groep beschikbaarheid in te vullen
+              </a>
+            </>
           )}
 
           {/* Handmatige datum */}
@@ -184,7 +212,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           <div style={{ marginTop: 8 }}>
             <Btn onClick={() => setStep(3)} disabled={!chosenDate || !startTime}>Volgende →</Btn>
             <Btn variant="ghost" onClick={() => setStep(1)}>← Terug</Btn>
-            {(partialDays.length > 0 || fullDays.length === 0) && (
+            {partialDays.length > 0 && fullDays.length === 0 && (
               <a
                 href={buildNudgeWhatsApp(title || fromWish?.title, window.location.origin)}
                 target="_blank"
