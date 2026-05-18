@@ -15,10 +15,8 @@ export default function DashboardScreen({ groups, availability, activities, curr
       <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', position: 'sticky', top: 0, zIndex: 300 }}>
         <div style={{ padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
           <div style={{ background: T.accent, borderRadius: 4, padding: '3px 9px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px' }}>wanneer</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div onClick={onProfiel} style={{ width: 34, height: 34, borderRadius: '50%', background: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, cursor: 'pointer' }}>
-              {currentMember?.name?.[0]}
-            </div>
+          <div onClick={onProfiel} style={{ width: 34, height: 34, borderRadius: '50%', background: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, cursor: 'pointer' }}>
+            {currentMember?.name?.[0]}
           </div>
         </div>
       </div>

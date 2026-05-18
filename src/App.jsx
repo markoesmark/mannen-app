@@ -259,7 +259,8 @@ export default function App() {
     : showBeheer ? `${activeGroup?.naam} — beheer`
     : 'Mijn beschikbaarheid'
 
-  const isDesktop = window.innerWidth >= 768
+  // Bepaal of we in een groep-context zitten (sidebar tonen op desktop)
+  const inGroup = view === 'group'
 
   // ── App ───────────────────────────────────────────────────────────────────
   return (
@@ -268,8 +269,8 @@ export default function App() {
 
       <div className="app-shell">
 
-        {/* Sidebar — alleen desktop, alleen als in een groep */}
-        {!subScreen && !showHelp && view === 'group' && (
+        {/* Sidebar — alleen desktop, alleen in groepscontext */}
+        {inGroup && (
           <div className="sidebar-wrapper">
             <SidebarNav
               tab={tab}
@@ -285,8 +286,9 @@ export default function App() {
 
         <div className="main-content">
 
-          {/* Header */}
+          {/* Eén header — mobile toont altijd, desktop alleen bij niet-subschermen */}
           {showHelp ? (
+            /* Help header — altijd zichtbaar */
             <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
               <div style={{ padding: '10px 16px 14px' }}>
                 <button onClick={() => setShowHelp(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '8px 16px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, minHeight: 38 }}>‹ Terug</button>
@@ -294,14 +296,16 @@ export default function App() {
               </div>
             </div>
           ) : subScreen ? (
+            /* Subscherm header — altijd zichtbaar, één keer */
             <SubHeader title={subTitle} onBack={goBackToGroup} />
-          ) : view === 'dashboard' ? (
-            // Dashboard heeft eigen header
-            null
           ) : view === 'profiel' ? (
+            /* Profiel header */
             <SubHeader title="Mijn profiel" onBack={() => setView('dashboard')} />
+          ) : view === 'dashboard' ? (
+            /* Dashboard — eigen header in DashboardScreen zelf */
+            null
           ) : (
-            // Groep header
+            /* Groep home/wishlist/archief — mobile header, op desktop verborgen via CSS */
             <div className="mobile-header">
               <NOSHeader
                 onAvatarClick={() => setShowAvail(true)}
@@ -310,16 +314,6 @@ export default function App() {
                 groupNaam={activeGroup?.naam}
                 onBack={goBackToDashboard}
               />
-            </div>
-          )}
-
-          {/* Desktop subheader */}
-          {(subScreen || showHelp) && (
-            <div className="desktop-subheader">
-              <div style={{ background: T.navBg, borderBottom: '1px solid #2a2a2a', padding: '16px 24px' }}>
-                <button onClick={showHelp ? () => setShowHelp(false) : goBackToGroup} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '7px 14px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>‹ Terug</button>
-                <div style={{ fontWeight: 800, fontSize: 20, color: T.white }}>{showHelp ? 'Hoe werkt het?' : subTitle}</div>
-              </div>
             </div>
           )}
 
@@ -444,7 +438,6 @@ const globalStyles = `
   .sidebar-wrapper { display: none; }
   .mobile-header { display: flex; flex-direction: column; }
   .mobile-nav { display: block; }
-  .desktop-subheader { display: none; }
   .stats-mobile { display: flex; }
   .desktop-stats { display: none !important; }
 
@@ -460,7 +453,6 @@ const globalStyles = `
     .sidebar-wrapper { display: flex; }
     .mobile-header { display: none; }
     .mobile-nav { display: none; }
-    .desktop-subheader { display: block; }
 
     .main-content {
       background: #f4f4f2;
