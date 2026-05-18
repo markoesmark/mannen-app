@@ -100,7 +100,6 @@ export default function App() {
   async function loadGroups() {
     try {
       const data = await getGroupsForMember(currentMember.id)
-      // Laad leden per groep
       const groupsWithMembers = await Promise.all(
         data.map(async g => {
           const members = await getGroupWithMembers(g.id)
@@ -108,6 +107,13 @@ export default function App() {
         })
       )
       setGroups(groupsWithMembers)
+
+      // Laad activiteiten voor alle groepen voor dashboard stats
+      const allActivities = await Promise.all(
+        groupsWithMembers.map(g => getActivitiesForGroup(g.id))
+      )
+      setActivities(allActivities.flat())
+
       // Als er maar één groep is, die meteen openen
       if (groupsWithMembers.length === 1 && !activeGroup) {
         await openGroup(groupsWithMembers[0])

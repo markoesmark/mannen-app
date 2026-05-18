@@ -49,14 +49,19 @@ export default function DashboardScreen({ groups, availability, activities, curr
             const myPending = pending.find(a => !(a.confirmations?.map(c => c.member_id) || []).includes(currentMember?.id))
             const eersteGepland = planned[0]
 
-            // Overlap berekenen
-            const groupMemberIds = group.memberIds || []
-            const groupAvail = availability.filter(a => groupMemberIds.includes(a.member_id))
+            // Overlap berekenen op basis van group.leden
+            const groupLeden = group.leden || []
             const today = new Date().toISOString().split('T')[0]
             const allDates = new Set()
-            groupAvail.forEach(av => av.days?.filter(d => d >= today).forEach(d => allDates.add(d)))
+            groupLeden.forEach(lid => {
+              const av = availability.find(a => a.member_id === lid.id)
+              av?.days?.filter(d => d >= today).forEach(d => allDates.add(d))
+            })
             const overlapDate = [...allDates].filter(date =>
-              groupMemberIds.every(mid => groupAvail.find(a => a.member_id === mid)?.days?.includes(date))
+              groupLeden.every(lid => {
+                const av = availability.find(a => a.member_id === lid.id)
+                return av?.days?.includes(date)
+              })
             ).sort()[0]
 
             return (
@@ -99,7 +104,7 @@ export default function DashboardScreen({ groups, availability, activities, curr
           })}
 
           {/* Nieuwe groep */}
-          <button onClick={onNewGroup} style={{ width: '100%', padding: '14px', background: 'transparent', border: `1px dashed ${T.borderDark}`, borderRadius: 14, color: T.textMuted, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
+          <button onClick={onNewGroup} style={{ width: '100%', padding: '14px', background: T.surface, border: `1px dashed ${T.borderDark}`, borderRadius: 14, color: T.textMuted, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
             + Nieuwe groep aanmaken
           </button>
         </div>
