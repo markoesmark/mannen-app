@@ -196,7 +196,7 @@ export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpCl
         </div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>{currentMember?.name}</div>
-          <div style={{ fontSize: 11, color: '#888' }}>Beschikbaarheid →</div>
+          <div style={{ fontSize: 11, color: '#888' }}>Mijn profiel →</div>
         </div>
       </div>
     </nav>

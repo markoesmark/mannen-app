@@ -282,7 +282,7 @@ export default function App() {
               tab={tab}
               setTab={setTab}
               currentMember={currentMember}
-              onAvatarClick={() => setShowAvail(true)}
+              onAvatarClick={() => setView('profiel')}
               onHelpClick={() => setShowHelp(true)}
               onBack={goBackToDashboard}
               groupNaam={activeGroup?.naam}

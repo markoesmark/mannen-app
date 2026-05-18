@@ -15,21 +15,26 @@ export async function getMembers() {
 
 export async function verifyPin(memberId, pin) {
   const { data, error } = await supabase
-    .from('members').select('id')
-    .eq('id', memberId).eq('pin_hash', pin).single()
-  if (error) return false
-  return !!data
+    .from('members').select('id, pin_hash')
+    .eq('id', memberId).single()
+  if (error || !data) return false
+  return data.pin_hash === pin
 }
 
 export async function setPin(memberId, pin) {
   const { error } = await supabase
-    .from('members').update({ pin_hash: pin, pin_set: true }).eq('id', memberId)
+    .from('members')
+    .update({ pin_hash: pin, pin_set: true })
+    .eq('id', memberId)
   if (error) throw error
 }
 
 export async function changePin(memberId, currentPin, newPin) {
-  const valid = await verifyPin(memberId, currentPin)
-  if (!valid) throw new Error('Huidige pincode is onjuist')
+  // Haal member op en vergelijk pin direct
+  const { data, error } = await supabase
+    .from('members').select('pin_hash').eq('id', memberId).single()
+  if (error || !data) throw new Error('Gebruiker niet gevonden')
+  if (data.pin_hash !== currentPin) throw new Error('Huidige pincode is onjuist')
   await setPin(memberId, newPin)
 }
 
