@@ -2,101 +2,184 @@ import { useState, useEffect } from 'react'
 import { T } from './lib/helpers.js'
 import {
   supabase,
-  getMembers, getAvailabilityIncludingExpired, getActivities, getWishlist,
-  archiveExpiredActivities, subscribeToActivities, subscribeToAvailability,
+  getMembers,
+  getGroupsForMember, getGroupWithMembers,
+  getAvailabilityIncludingExpired,
+  getActivitiesForGroup, getWishlistForGroup,
+  archiveExpiredActivities,
+  subscribeToActivities, subscribeToAvailability,
+  validateAndJoinViaToken,
 } from './lib/supabase.js'
 import { NOSHeader, SubHeader, BottomNav, SidebarNav } from './components/UI.jsx'
 import LoginScreen from './components/LoginScreen.jsx'
+import RegisterScreen from './components/RegisterScreen.jsx'
+import DashboardScreen from './components/DashboardScreen.jsx'
+import ProfielScreen from './components/ProfielScreen.jsx'
+import GroupBeheerScreen from './components/GroupBeheerScreen.jsx'
 import HomeScreen from './components/HomeScreen.jsx'
 import AvailabilityScreen from './components/AvailabilityScreen.jsx'
 import ActivityDetailScreen from './components/ActivityDetailScreen.jsx'
 import NewActivityScreen from './components/NewActivityScreen.jsx'
 import WishlistScreen from './components/WishlistScreen.jsx'
+import AdminScreen from './components/AdminScreen.jsx'
 import { ArchiefScreen, HelpScreen } from './components/OtherScreens.jsx'
 
 export default function App() {
-  const [loading, setLoading] = useState(true)
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const [appState, setAppState] = useState('loading') // loading | login | register | app | admin
   const [currentMember, setCurrentMember] = useState(null)
-  const [members, setMembers] = useState([])
+
+  // ── Multi-groep ───────────────────────────────────────────────────────────
+  const [groups, setGroups] = useState([])
+  const [activeGroup, setActiveGroup] = useState(null)
+  const [groupMembers, setGroupMembers] = useState([])
+
+  // ── Data ──────────────────────────────────────────────────────────────────
   const [availability, setAvailability] = useState([])
   const [activities, setActivities] = useState([])
   const [wishlist, setWishlist] = useState([])
 
+  // ── Navigation ────────────────────────────────────────────────────────────
+  const [view, setView] = useState('dashboard') // dashboard | group | profiel | beheer | admin
   const [tab, setTab] = useState('home')
   const [activeActivity, setActiveActivity] = useState(null)
   const [showNew, setShowNew] = useState(false)
   const [showAvail, setShowAvail] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [showBeheer, setShowBeheer] = useState(false)
 
   // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    async function init() {
-      const membersData = await getMembers()
-      setMembers(membersData)
-
-      // Check of al ingelogd
-      const savedId = localStorage.getItem('mannen_member_id')
-      const savedName = localStorage.getItem('mannen_member_name')
-      if (savedId && savedName) {
-        const member = membersData.find(m => m.id === savedId)
-        if (member) setCurrentMember(member)
-      }
-
-      setLoading(false)
+    // Check voor admin route
+    if (window.location.pathname === '/admin') {
+      setAppState('admin')
+      return
     }
-    init()
+
+    // Check voor invite token in URL
+    const pathParts = window.location.pathname.split('/')
+    if (pathParts[1] === 'join' && pathParts[2]) {
+      localStorage.setItem('wanneer_pending_token', pathParts[2])
+    }
+
+    // Check of al ingelogd
+    const savedId = localStorage.getItem('wanneer_member_id')
+    const savedName = localStorage.getItem('wanneer_member_name')
+    if (savedId && savedName) {
+      setCurrentMember({ id: savedId, name: savedName })
+      setAppState('app')
+    } else {
+      setAppState('login')
+    }
   }, [])
 
   // ── Data laden na login ───────────────────────────────────────────────────
   useEffect(() => {
-    if (!currentMember) return
-    loadData()
+    if (!currentMember || appState !== 'app') return
+    initApp()
+  }, [currentMember, appState])
 
-    // Realtime updates
-    const actSub = subscribeToActivities(loadActivities)
-    const avSub = subscribeToAvailability(loadAvailability)
+  async function initApp() {
+    await Promise.all([loadGroups(), loadAvailability()])
 
+    // Check voor pending invite token
+    const pendingToken = localStorage.getItem('wanneer_pending_token')
+    if (pendingToken) {
+      try {
+        await validateAndJoinViaToken(pendingToken, currentMember.id)
+        localStorage.removeItem('wanneer_pending_token')
+        window.history.replaceState({}, '', '/')
+        await loadGroups()
+      } catch (e) {
+        console.error('Token join failed:', e.message)
+        localStorage.removeItem('wanneer_pending_token')
+      }
+    }
+  }
+
+  async function loadGroups() {
+    try {
+      const data = await getGroupsForMember(currentMember.id)
+      // Laad leden per groep
+      const groupsWithMembers = await Promise.all(
+        data.map(async g => {
+          const members = await getGroupWithMembers(g.id)
+          return { ...g, leden: members, memberIds: members.map(m => m.id) }
+        })
+      )
+      setGroups(groupsWithMembers)
+      // Als er maar één groep is, die meteen openen
+      if (groupsWithMembers.length === 1 && !activeGroup) {
+        await openGroup(groupsWithMembers[0])
+      }
+    } catch (e) { console.error(e) }
+  }
+
+  async function loadAvailability() {
+    try {
+      const data = await getAvailabilityIncludingExpired()
+      setAvailability(data)
+    } catch (e) { console.error(e) }
+  }
+
+  async function openGroup(group) {
+    setActiveGroup(group)
+    setView('group')
+    setTab('home')
+    await Promise.all([
+      loadActivities(group.id),
+      loadWishlist(group.id),
+      loadGroupMembers(group.id),
+    ])
+    await archiveExpiredActivities(group.id)
+
+    // Realtime
+    const actSub = subscribeToActivities(group.id, () => loadActivities(group.id))
+    const avSub = subscribeToAvailability(() => loadAvailability())
     return () => {
       supabase.removeChannel(actSub)
       supabase.removeChannel(avSub)
     }
-  }, [currentMember])
-
-  async function loadData() {
-    await archiveExpiredActivities()
-    await Promise.all([loadAvailability(), loadActivities(), loadWishlist()])
   }
 
-  async function loadAvailability() {
-    const data = await getAvailabilityIncludingExpired()
-    setAvailability(data)
+  async function loadActivities(groupId) {
+    try {
+      const data = await getActivitiesForGroup(groupId || activeGroup?.id)
+      setActivities(data)
+    } catch (e) { console.error(e) }
   }
 
-  async function loadActivities() {
-    const data = await getActivities()
-    setActivities(data)
+  async function loadWishlist(groupId) {
+    try {
+      const data = await getWishlistForGroup(groupId || activeGroup?.id)
+      setWishlist(data)
+    } catch (e) { console.error(e) }
   }
 
-  async function loadWishlist() {
-    const data = await getWishlist()
-    setWishlist(data)
+  async function loadGroupMembers(groupId) {
+    try {
+      const data = await getGroupWithMembers(groupId || activeGroup?.id)
+      setGroupMembers(data)
+    } catch (e) { console.error(e) }
   }
-
-  // ── Navigation ────────────────────────────────────────────────────────────
-  const goBack = () => {
-    setActiveActivity(null)
-    setShowNew(false)
-    setShowAvail(false)
-    setShowHelp(false)
-  }
-
-  const subScreen = activeActivity || showNew || showAvail
-
-  const subTitle = activeActivity ? activeActivity.title
-    : showNew ? 'Activiteit plannen'
-    : 'Mijn beschikbaarheid'
 
   // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleLogin = (member) => {
+    setCurrentMember(member)
+    setAppState('app')
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('wanneer_member_id')
+    localStorage.removeItem('wanneer_member_name')
+    setCurrentMember(null)
+    setAppState('login')
+    setGroups([])
+    setActiveGroup(null)
+    setActivities([])
+    setWishlist([])
+  }
+
   const handleActivityUpdated = (updated) => {
     setActivities(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a))
     if (activeActivity?.id === updated.id) setActiveActivity(prev => ({ ...prev, ...updated }))
@@ -112,33 +195,81 @@ export default function App() {
     setShowNew(false)
   }
 
-  // ── Loading ───────────────────────────────────────────────────────────────
-  if (loading) return (
-    <div style={{ background: T.navBg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit',sans-serif" }}>
-      <div style={{ background: T.red, borderRadius: 8, padding: '6px 16px', fontWeight: 900, fontSize: 22, color: T.white, letterSpacing: '-0.5px' }}>
-        MANNEN
+  const goBackToGroup = () => {
+    setActiveActivity(null)
+    setShowNew(false)
+    setShowAvail(false)
+    setShowHelp(false)
+    setShowBeheer(false)
+  }
+
+  const goBackToDashboard = () => {
+    setView('dashboard')
+    setActiveGroup(null)
+    setActivities([])
+    setWishlist([])
+    goBackToGroup()
+  }
+
+  // ── Admin route ───────────────────────────────────────────────────────────
+  if (appState === 'admin') return (
+    <>
+      <style>{globalStyles}</style>
+      <div style={{ background: T.bg, minHeight: '100vh', fontFamily: "'Outfit',sans-serif", color: T.text, display: 'flex', flexDirection: 'column', maxWidth: 420, margin: '0 auto' }}>
+        <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+          <div style={{ padding: '10px 16px 14px' }}>
+            <div style={{ fontWeight: 800, fontSize: 19, color: T.white }}>App beheer</div>
+          </div>
+        </div>
+        <AdminScreen />
       </div>
+    </>
+  )
+
+  // ── Loading ───────────────────────────────────────────────────────────────
+  if (appState === 'loading') return (
+    <div style={{ background: T.navBg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit',sans-serif" }}>
+      <div style={{ background: T.accent, borderRadius: 8, padding: '6px 16px', fontWeight: 900, fontSize: 22, color: T.white, letterSpacing: '-0.5px' }}>wanneer</div>
     </div>
   )
 
-  // ── Login ─────────────────────────────────────────────────────────────────
-  if (!currentMember) return (
+  // ── Login / Register ──────────────────────────────────────────────────────
+  if (appState === 'login') return (
     <>
       <style>{globalStyles}</style>
-      <LoginScreen members={members} onLogin={m => { setCurrentMember(m); }} />
+      <LoginScreen onLogin={handleLogin} onRegister={() => setAppState('register')} />
     </>
   )
+
+  if (appState === 'register') return (
+    <>
+      <style>{globalStyles}</style>
+      <RegisterScreen
+        onDone={(member, group) => { handleLogin(member); if (group) openGroup(group) }}
+        onBack={() => setAppState('login')}
+        inviteToken={localStorage.getItem('wanneer_pending_token')}
+      />
+    </>
+  )
+
+  // ── Subscreen titles ──────────────────────────────────────────────────────
+  const subScreen = activeActivity || showNew || showAvail || showBeheer
+  const subTitle = activeActivity ? activeActivity.title
+    : showNew ? 'Activiteit plannen'
+    : showBeheer ? `${activeGroup?.naam} — beheer`
+    : 'Mijn beschikbaarheid'
+
+  const isDesktop = window.innerWidth >= 768
 
   // ── App ───────────────────────────────────────────────────────────────────
   return (
     <>
       <style>{globalStyles}</style>
 
-      {/* Desktop layout — sidebar + content */}
       <div className="app-shell">
 
-        {/* Sidebar — alleen desktop */}
-        {!subScreen && !showHelp && (
+        {/* Sidebar — alleen desktop, alleen als in een groep */}
+        {!subScreen && !showHelp && view === 'group' && (
           <div className="sidebar-wrapper">
             <SidebarNav
               tab={tab}
@@ -146,92 +277,126 @@ export default function App() {
               currentMember={currentMember}
               onAvatarClick={() => setShowAvail(true)}
               onHelpClick={() => setShowHelp(true)}
+              onBack={goBackToDashboard}
+              groupNaam={activeGroup?.naam}
             />
           </div>
         )}
 
-        {/* Main content */}
         <div className="main-content">
 
-          {/* Header — mobiel + subschermen */}
-          <div className="mobile-header">
-            {showHelp ? (
-              <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
-                <div style={{ padding: '10px 16px 14px' }}>
-                  <button onClick={() => setShowHelp(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '8px 16px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, minHeight: 38 }}>
-                    ‹ Terug
-                  </button>
-                  <div style={{ fontWeight: 800, fontSize: 19, color: T.white }}>Hoe werkt het?</div>
-                </div>
+          {/* Header */}
+          {showHelp ? (
+            <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
+              <div style={{ padding: '10px 16px 14px' }}>
+                <button onClick={() => setShowHelp(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '8px 16px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, minHeight: 38 }}>‹ Terug</button>
+                <div style={{ fontWeight: 800, fontSize: 19, color: T.white }}>Hoe werkt het?</div>
               </div>
-            ) : subScreen ? (
-              <SubHeader title={subTitle} onBack={goBack} />
-            ) : (
+            </div>
+          ) : subScreen ? (
+            <SubHeader title={subTitle} onBack={goBackToGroup} />
+          ) : view === 'dashboard' ? (
+            // Dashboard heeft eigen header
+            null
+          ) : view === 'profiel' ? (
+            <SubHeader title="Mijn profiel" onBack={() => setView('dashboard')} />
+          ) : (
+            // Groep header
+            <div className="mobile-header">
               <NOSHeader
                 onAvatarClick={() => setShowAvail(true)}
                 onHelpClick={() => setShowHelp(true)}
                 currentMember={currentMember}
+                groupNaam={activeGroup?.naam}
+                onBack={goBackToDashboard}
               />
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Desktop subheader */}
           {(subScreen || showHelp) && (
             <div className="desktop-subheader">
               <div style={{ background: T.navBg, borderBottom: '1px solid #2a2a2a', padding: '16px 24px' }}>
-                <button onClick={showHelp ? () => setShowHelp(false) : goBack} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '7px 14px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  ‹ Terug
-                </button>
-                <div style={{ fontWeight: 800, fontSize: 20, color: T.white }}>
-                  {showHelp ? 'Hoe werkt het?' : subTitle}
-                </div>
+                <button onClick={showHelp ? () => setShowHelp(false) : goBackToGroup} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 6, padding: '7px 14px', color: T.white, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>‹ Terug</button>
+                <div style={{ fontWeight: 800, fontSize: 20, color: T.white }}>{showHelp ? 'Hoe werkt het?' : subTitle}</div>
               </div>
             </div>
           )}
 
           {/* Screens */}
           {showHelp ? <HelpScreen /> : (
-            activeActivity ? (
-              <ActivityDetailScreen
-                activity={activeActivity}
-                members={members}
-                currentMember={currentMember}
-                onBack={goBack}
-                onUpdated={handleActivityUpdated}
-                onDeleted={handleActivityDeleted}
-              />
-            ) : showNew ? (
-              <NewActivityScreen
+            view === 'dashboard' ? (
+              <DashboardScreen
+                groups={groups}
                 availability={availability}
-                members={members}
-                wishlist={wishlist}
+                activities={activities}
                 currentMember={currentMember}
-                onCreated={handleActivityCreated}
-                onBack={goBack}
+                onOpenGroup={openGroup}
+                onNewGroup={() => setAppState('register')}
+                onOpenAvailability={() => setShowAvail(true)}
+                onProfiel={() => setView('profiel')}
               />
-            ) : showAvail ? (
-              <AvailabilityScreen
-                availability={availability}
-                members={members}
+            ) : view === 'profiel' ? (
+              <ProfielScreen
                 currentMember={currentMember}
-                onSaved={() => { loadAvailability(); setShowAvail(false) }}
+                groups={groups}
+                onLogout={handleLogout}
               />
+            ) : subScreen ? (
+              activeActivity ? (
+                <ActivityDetailScreen
+                  activity={activeActivity}
+                  members={groupMembers}
+                  currentMember={currentMember}
+                  onBack={goBackToGroup}
+                  onUpdated={handleActivityUpdated}
+                  onDeleted={handleActivityDeleted}
+                />
+              ) : showNew ? (
+                <NewActivityScreen
+                  availability={availability}
+                  members={groupMembers}
+                  wishlist={wishlist}
+                  currentMember={currentMember}
+                  groupId={activeGroup?.id}
+                  onCreated={handleActivityCreated}
+                  onBack={goBackToGroup}
+                />
+              ) : showBeheer ? (
+                <GroupBeheerScreen
+                  group={activeGroup}
+                  members={groupMembers}
+                  currentMember={currentMember}
+                  onBack={goBackToGroup}
+                  onGroupDeleted={goBackToDashboard}
+                  onGroupUpdated={() => { loadGroups(); loadGroupMembers() }}
+                />
+              ) : (
+                <AvailabilityScreen
+                  availability={availability}
+                  members={groupMembers}
+                  currentMember={currentMember}
+                  onSaved={() => { loadAvailability(); setShowAvail(false) }}
+                />
+              )
             ) : tab === 'home' ? (
               <HomeScreen
                 activities={activities.filter(a => a.status !== 'geweest')}
                 availability={availability}
-                members={members}
+                members={groupMembers}
                 currentMember={currentMember}
                 onOpenActivity={setActiveActivity}
                 onOpenAvailability={() => setShowAvail(true)}
                 onNewActivity={() => setShowNew(true)}
+                onOpenBeheer={() => setShowBeheer(true)}
               />
             ) : tab === 'wishlist' ? (
               <WishlistScreen
                 wishlist={wishlist}
-                members={members}
+                members={groupMembers}
                 currentMember={currentMember}
-                onUpdated={loadWishlist}
+                groupId={activeGroup?.id}
+                onUpdated={() => loadWishlist()}
               />
             ) : (
               <ArchiefScreen
@@ -241,8 +406,8 @@ export default function App() {
             )
           )}
 
-          {/* Bottom nav — alleen mobiel, alleen hoofdschermen */}
-          {!subScreen && !showHelp && (
+          {/* Bottom nav — mobiel, alleen in groepsview */}
+          {!subScreen && !showHelp && view === 'group' && (
             <div className="mobile-nav">
               <BottomNav tab={tab} setTab={setTab} />
             </div>
@@ -261,7 +426,6 @@ const globalStyles = `
   input::placeholder { color: #888; }
   button:disabled { opacity: 0.35; cursor: not-allowed !important; }
 
-  /* App shell — responsive */
   .app-shell {
     display: flex;
     min-height: 100vh;
@@ -277,17 +441,13 @@ const globalStyles = `
     overflow: hidden;
   }
 
-  /* Mobiel: sidebar verborgen, bottom nav zichtbaar */
   .sidebar-wrapper { display: none; }
   .mobile-header { display: flex; flex-direction: column; }
   .mobile-nav { display: block; }
   .desktop-subheader { display: none; }
-
-  /* Stats blokken */
   .stats-mobile { display: flex; }
   .desktop-stats { display: none !important; }
 
-  /* Desktop (≥768px): sidebar zichtbaar, bottom nav verborgen */
   @media (min-width: 768px) {
     body { background: #1a1a1a; }
 

@@ -99,17 +99,23 @@ export const DayCell = ({ selected, count, total, onClick, children, past }) => 
   )
 }
 
-export const NOSHeader = ({ onAvatarClick, onHelpClick, currentMember }) => (
+export const NOSHeader = ({ onAvatarClick, onHelpClick, currentMember, groupNaam, onBack }) => (
   <div style={{ background: T.navBg, paddingTop: 'env(safe-area-inset-top, 0px)', flexShrink: 0, position: 'sticky', top: 0, zIndex: 300 }}>
     <div style={{ padding: '0 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
-      <div style={{ background: T.red, borderRadius: 4, padding: '3px 9px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px' }}>
-        MANNEN
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {onBack && (
+          <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#888', fontSize: 13, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}>‹</button>
+        )}
+        <div style={{ background: T.accent, borderRadius: 4, padding: '3px 9px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px' }}>
+          wanneer
+        </div>
+        {groupNaam && <div style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>{groupNaam}</div>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div onClick={onHelpClick} style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: '#ccc', cursor: 'pointer' }}>
           ?
         </div>
-        <div onClick={onAvatarClick} style={{ width: 34, height: 34, borderRadius: '50%', background: T.red, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, cursor: 'pointer' }}>
+        <div onClick={onAvatarClick} style={{ width: 34, height: 34, borderRadius: '50%', background: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, cursor: 'pointer' }}>
           {currentMember?.name?.[0] || 'M'}
         </div>
       </div>
@@ -138,7 +144,7 @@ export const BottomNav = ({ tab, setTab }) => {
   return (
     <nav style={{ background: T.navBg, borderTop: '1px solid #333', display: 'flex', flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {items.map(({ id, icon, label }) => (
-        <button key={id} onClick={() => setTab(id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '10px 0 12px', background: 'none', border: 'none', cursor: 'pointer', color: tab === id ? T.red : '#888', fontSize: 10, fontWeight: tab === id ? 700 : 400, fontFamily: "'Outfit',sans-serif", borderTop: tab === id ? `2px solid ${T.red}` : '2px solid transparent' }}>
+        <button key={id} onClick={() => setTab(id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '10px 0 12px', background: 'none', border: 'none', cursor: 'pointer', color: tab === id ? T.accent : '#888', fontSize: 10, fontWeight: tab === id ? 700 : 400, fontFamily: "'Outfit',sans-serif", borderTop: tab === id ? `2px solid ${T.accent}` : '2px solid transparent' }}>
           <span style={{ fontSize: 18 }}>{icon}</span>
           {label}
         </button>
@@ -147,7 +153,7 @@ export const BottomNav = ({ tab, setTab }) => {
   )
 }
 
-export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpClick }) => {
+export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpClick, onBack, groupNaam }) => {
   const items = [
     { id: 'home',     icon: '🏠', label: 'Home'    },
     { id: 'wishlist', icon: '🗺️', label: 'Wishlist' },
@@ -155,30 +161,23 @@ export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpCl
   ]
   return (
     <nav style={{ width: 220, background: T.navBg, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0 }}>
-      {/* Wordmark */}
+      {/* Wordmark + groepsnaam */}
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid #2a2a2a' }}>
-        <div style={{ background: T.red, borderRadius: 4, padding: '4px 10px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px', display: 'inline-block' }}>
-          MANNEN
+        <div style={{ background: T.accent, borderRadius: 4, padding: '4px 10px', fontWeight: 900, fontSize: 15, color: T.white, letterSpacing: '-0.5px', display: 'inline-block', marginBottom: groupNaam ? 6 : 0 }}>
+          wanneer
         </div>
+        {groupNaam && <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>{groupNaam}</div>}
+        {onBack && (
+          <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: '#888', fontSize: 12, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", marginTop: 8, padding: 0 }}>
+            ‹ Alle groepen
+          </button>
+        )}
       </div>
 
       {/* Nav items */}
       <div style={{ flex: 1, padding: '12px 0' }}>
         {items.map(({ id, icon, label }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 20px', background: 'none',
-              border: 'none', borderLeft: tab === id ? `3px solid ${T.red}` : '3px solid transparent',
-              cursor: 'pointer', color: tab === id ? T.white : '#888',
-              fontSize: 13, fontWeight: tab === id ? 700 : 400,
-              fontFamily: "'Outfit',sans-serif",
-              backgroundColor: tab === id ? 'rgba(255,255,255,0.05)' : 'transparent',
-              textAlign: 'left',
-            }}
-          >
+          <button key={id} onClick={() => setTab(id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', background: 'none', border: 'none', borderLeft: tab === id ? `3px solid ${T.accent}` : '3px solid transparent', cursor: 'pointer', color: tab === id ? T.white : '#888', fontSize: 13, fontWeight: tab === id ? 700 : 400, fontFamily: "'Outfit',sans-serif", backgroundColor: tab === id ? 'rgba(255,255,255,0.05)' : 'transparent', textAlign: 'left' }}>
             <span style={{ fontSize: 16 }}>{icon}</span>
             {label}
           </button>
@@ -186,19 +185,13 @@ export const SidebarNav = ({ tab, setTab, currentMember, onAvatarClick, onHelpCl
       </div>
 
       {/* Uitleg */}
-      <button
-        onClick={onHelpClick}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', background: 'none', border: 'none', borderLeft: '3px solid transparent', cursor: 'pointer', color: '#888', fontSize: 13, fontFamily: "'Outfit',sans-serif", width: '100%', textAlign: 'left' }}
-      >
+      <button onClick={onHelpClick} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', background: 'none', border: 'none', borderLeft: '3px solid transparent', cursor: 'pointer', color: '#888', fontSize: 13, fontFamily: "'Outfit',sans-serif", width: '100%', textAlign: 'left' }}>
         <span style={{ fontSize: 16 }}>❓</span> Uitleg
       </button>
 
       {/* User */}
-      <div
-        onClick={onAvatarClick}
-        style={{ padding: '14px 20px', borderTop: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
-      >
-        <div style={{ width: 32, height: 32, borderRadius: '50%', background: T.red, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, flexShrink: 0 }}>
+      <div onClick={onAvatarClick} style={{ padding: '14px 20px', borderTop: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: T.white, flexShrink: 0 }}>
           {currentMember?.name?.[0] || 'M'}
         </div>
         <div>

@@ -22,7 +22,7 @@ function ActivityRow({ activity, members, onClick }) {
   )
 }
 
-export default function HomeScreen({ activities, availability, members, currentMember, onOpenActivity, onOpenAvailability, onNewActivity }) {
+export default function HomeScreen({ activities, availability, members, currentMember, onOpenActivity, onOpenAvailability, onNewActivity, onOpenBeheer }) {
   const myAvail = availability.find(a => a.member_id === currentMember?.id)
   const expired = !myAvail || isExpired(myAvail.expires_at)
   const expiring = myAvail && !expired && daysUntilExpiry(myAvail.expires_at) <= 4
@@ -219,10 +219,15 @@ export default function HomeScreen({ activities, availability, members, currentM
         </>
       )}
 
-      <div style={{ padding: '16px 16px 32px' }}>
-        <button onClick={onNewActivity} style={{ width: '100%', padding: '13px', borderRadius: 4, border: 'none', background: T.red, color: T.white, fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+      <div style={{ padding: '16px 16px 32px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <button onClick={onNewActivity} style={{ width: '100%', padding: '13px', borderRadius: 4, border: 'none', background: T.accent, color: T.white, fontFamily: "'Outfit',sans-serif", fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
           + Activiteit plannen
         </button>
+        {onOpenBeheer && (
+          <button onClick={onOpenBeheer} style={{ width: '100%', padding: '11px', borderRadius: 4, border: `1px solid ${T.border}`, background: 'transparent', color: T.textMuted, fontFamily: "'Outfit',sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            ⚙ Groepsbeheer
+          </button>
+        )}
       </div>
     </div>
   )

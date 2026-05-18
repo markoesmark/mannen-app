@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { T, formatDate, formatTijd, buildWhatsAppUrl, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
+import { T, formatDate, formatTijd, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
 import { updateActivity, deleteActivity, confirmActivity } from '../lib/supabase.js'
 import { StatusBadge, MemberChip, SectionTitle, Divider, Lbl, Inp, Btn } from './UI.jsx'
 

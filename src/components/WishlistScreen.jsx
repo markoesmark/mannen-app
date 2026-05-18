@@ -3,7 +3,7 @@ import { T } from '../lib/helpers.js'
 import { addWishlistItem, toggleWishlistVote, updateWishlistItem, deleteWishlistItem } from '../lib/supabase.js'
 import { SectionTitle, Divider, MemberChip, Lbl, Inp, Btn } from './UI.jsx'
 
-export default function WishlistScreen({ wishlist, members, currentMember, onUpdated }) {
+export default function WishlistScreen({ wishlist, members, currentMember, groupId, onUpdated }) {
   const [showAdd, setShowAdd] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newLoc, setNewLoc] = useState('')
@@ -59,7 +59,7 @@ export default function WishlistScreen({ wishlist, members, currentMember, onUpd
     if (!newTitle) return
     setSaving(true)
     try {
-      await addWishlistItem({ title: newTitle, location: newLoc, addedByMemberId: currentMember.id })
+      await addWishlistItem({ title: newTitle, location: newLoc, addedByMemberId: currentMember.id, groupId })
       setNewTitle('')
       setNewLoc('')
       setShowAdd(false)

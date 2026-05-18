@@ -47,20 +47,68 @@ export function ArchiefScreen({ activities, onOpenActivity }) {
 // ─── HELP ─────────────────────────────────────────────────────────────────────
 export function HelpScreen() {
   const steps = [
-    { icon: '📅', title: '1. Geef je beschikbaarheid op', text: 'Open de app en tik op de kaart "Mijn beschikbaarheid". Klik de dagen aan waarop jij vrij bent. Dit is twee weken geldig en verloopt daarna automatisch.' },
-    { icon: '👀', title: '2. Zie wanneer iedereen kan', text: 'De app laat meteen zien op welke dagen iedereen vrij is. Groen = iedereen kan. Zo weet je in één oogopslag wanneer een afspraak mogelijk is.' },
-    { icon: '🎯', title: '3. Stel een activiteit voor', text: 'Tik op "+ Activiteit plannen". Kies een idee van de wishlist of bedenk iets nieuws. De app toont de beste datums. Kies datum en tijd, en stuur een WhatsApp naar de groep.' },
-    { icon: '✅', title: '4. Iedereen bevestigt', text: 'De anderen ontvangen een link via WhatsApp. Ze openen de app, voeren hun pincode in en bevestigen. Zodra iedereen bevestigd heeft staat de activiteit gepland.' },
-    { icon: '🗺️', title: 'Wishlist', text: 'Ideeën die jullie ooit willen doen staan op de wishlist. Iedereen kan ideeën toevoegen en met een 👊 aangeven dat hij het een goed idee vindt.' },
-    { icon: '⚠️', title: 'Verlopen beschikbaarheid', text: 'Als iemands beschikbaarheid verloopt telt die nog mee, maar je ziet een waarschuwing. De datums zijn dan indicatief.' },
-    { icon: '🔐', title: 'Pincode', text: 'Iedereen heeft een eigen 4-cijferige pincode. Die zorgt ervoor dat alleen jij jouw bevestiging kunt geven — zonder gedoe van een account.' },
+    {
+      icon: '👋',
+      title: '1. Account aanmaken',
+      text: 'Kies een naam en stel een pincode in van 4 cijfers. Je kunt daarna een nieuwe groep aanmaken of joinen via een uitnodigingslink van iemand anders.',
+    },
+    {
+      icon: '👥',
+      title: '2. Groepen',
+      text: 'Je kunt lid zijn van meerdere groepen — bv. "Vrienden" en "Familie". Elke groep heeft zijn eigen activiteiten en wishlist. Op het dashboard zie je in één oogopslag wat er speelt per groep.',
+    },
+    {
+      icon: '📲',
+      title: '3. Iemand uitnodigen',
+      text: 'Ga naar Groepsbeheer en genereer een uitnodigingslink. Die is 7 dagen geldig en maximaal 10 keer te gebruiken. Stuur de link via WhatsApp — de ontvanger kan meteen joinen, met een nieuw of bestaand account.',
+    },
+    {
+      icon: '📅',
+      title: '4. Beschikbaarheid opgeven',
+      text: 'Tik op "Mijn beschikbaarheid" op het dashboard. Klik de dagen aan waarop jij vrij bent. Dit geldt automatisch voor al je groepen — je hoeft het maar één keer in te vullen. Na twee weken verloopt het en vraagt de app je het bij te werken.',
+    },
+    {
+      icon: '👀',
+      title: '5. Zie wanneer iedereen kan',
+      text: 'De app laat per groep meteen zien op welke dagen iedereen vrij is. Groen = iedereen kan. De statistieken bovenaan tonen de eerstvolgende vrije datum, of er iets van jou gevraagd wordt, en wat de volgende geplande activiteit is.',
+    },
+    {
+      icon: '🎯',
+      title: '6. Activiteit plannen',
+      text: 'Tik op "+ Activiteit plannen". Kies een idee van de wishlist of bedenk iets nieuws. De app toont de beste datums op basis van ieders beschikbaarheid. Kies datum en tijd, maak de activiteit aan en stuur een WhatsApp naar de groep.',
+    },
+    {
+      icon: '✅',
+      title: '7. Bevestigen',
+      text: 'De anderen ontvangen een link via WhatsApp. Ze openen de app en bevestigen met één tik — je bent al ingelogd, dus geen pincode nodig. Zodra iedereen bevestigd heeft staat de activiteit officieel gepland.',
+    },
+    {
+      icon: '🗺️',
+      title: 'Wishlist',
+      text: 'Ideeën die jullie ooit willen doen staan op de wishlist. Iedereen kan ideeën toevoegen, bewerken en met een 👊 aangeven dat hij het een goed idee vindt. Bij het plannen van een activiteit kun je direct een idee van de wishlist pakken — gesorteerd op meeste stemmen.',
+    },
+    {
+      icon: '📦',
+      title: 'Archief',
+      text: 'Activiteiten worden automatisch gearchiveerd zodra de datum voorbij is. Je kunt ze altijd terugvinden in het Archief tabblad.',
+    },
+    {
+      icon: '⚠️',
+      title: 'Verlopen beschikbaarheid',
+      text: 'Als iemands beschikbaarheid verloopt telt die nog steeds mee — maar je ziet een waarschuwing. De datums zijn dan indicatief. Stuur diegene een herinnering om zijn beschikbaarheid bij te werken.',
+    },
+    {
+      icon: '🔐',
+      title: 'Pincode',
+      text: 'Je stelt zelf een 4-cijferige pincode in bij het registreren. Die kun je altijd wijzigen via je profiel (tik op jouw initiaal rechtsboven). Vergeten? Vraag de beheerder om je pin te resetten.',
+    },
   ]
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
       <div style={{ background: T.navBg, padding: '16px 16px 20px' }}>
         <div style={{ fontSize: 13, color: '#aaa', lineHeight: 1.6 }}>
-          Mannen maakt het makkelijk om met z'n vieren iets af te spreken — zonder eindeloos appjes. Iedereen geeft beschikbaarheid op, de app berekent wanneer het kan, en één iemand plant de activiteit.
+          Wanneer maakt het makkelijk om samen iets af te spreken — zonder eindeloos appjes heen en weer. Iedereen geeft beschikbaarheid op, de app berekent wanneer het kan, en één iemand plant de activiteit.
         </div>
       </div>
       {steps.map((s, i) => (

@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { T, generateWeeks, formatDate, formatTijd, isExpired, buildWhatsAppUrl, buildGroupWhatsAppMessage, buildNudgeWhatsApp, buildDateNudgeWhatsApp, downloadICS } from '../lib/helpers.js'
+import { T, generateWeeks, formatDate, formatTijd, isExpired, buildGroupWhatsAppMessage, buildNudgeWhatsApp, buildDateNudgeWhatsApp, downloadICS } from '../lib/helpers.js'
 import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
-export default function NewActivityScreen({ availability, members, wishlist, currentMember, onCreated, onBack }) {
+export default function NewActivityScreen({ availability, members, wishlist, currentMember, groupId, onCreated, onBack }) {
   const [step, setStep] = useState(1)
   const [title, setTitle] = useState('')
   const [location, setLocation] = useState('')
@@ -42,6 +42,7 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
         startTime,
         endTime: endTime || null,
         fromMemberId: currentMember.id,
+        groupId,
       })
       setCreatedActivity(newActivity)
     } catch (e) {
