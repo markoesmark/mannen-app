@@ -49,7 +49,7 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
   const handleConfirm = async () => {
     setConfirming(true)
     try {
-      await confirmActivity(activity.id, currentMember.id)
+      await confirmActivity(activity.id, currentMember.id, activity.group_id)
       setConfirmed(true)
       onUpdated({ ...activity, confirmations: [...(activity.confirmations || []), { member_id: currentMember.id }] })
     } catch (e) {

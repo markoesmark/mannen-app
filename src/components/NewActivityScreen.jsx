@@ -122,32 +122,13 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
                   </div>
                 )
               })}
-              {/* WhatsApp nudge bij gedeeltelijke beschikbaarheid */}
-              <a
-                href={buildNudgeWhatsApp(title || fromWish?.title, members, currentMember, window.location.origin)}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box', marginTop: 4, marginBottom: 8 }}
-              >
-                📲 Vraag de groep meer beschikbaarheid in te vullen
-              </a>
             </>
           )}
 
           {fullDays.length === 0 && partialDays.length === 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 10 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
-                <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
-              </div>
-              <a
-                href={buildNudgeWhatsApp(title || fromWish?.title, members, currentMember, window.location.origin)}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#25D366', borderRadius: 6, padding: '12px', color: T.white, fontSize: 13, fontWeight: 700, textDecoration: 'none', boxSizing: 'border-box' }}
-              >
-                📲 Vraag de groep beschikbaarheid in te vullen
-              </a>
+            <div style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 6, padding: '14px', marginBottom: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: T.red }}>Geen overlappende beschikbaarheid</div>
+              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 3 }}>Vraag de groep hun beschikbaarheid bij te werken, of kies handmatig een datum hieronder.</div>
             </div>
           )}
 
@@ -203,6 +184,16 @@ export default function NewActivityScreen({ availability, members, wishlist, cur
           <div style={{ marginTop: 8 }}>
             <Btn onClick={() => setStep(3)} disabled={!chosenDate || !startTime}>Volgende →</Btn>
             <Btn variant="ghost" onClick={() => setStep(1)}>← Terug</Btn>
+            {(partialDays.length > 0 || fullDays.length === 0) && (
+              <a
+                href={buildNudgeWhatsApp(title || fromWish?.title, window.location.origin)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'block', width: '100%', padding: '10px', borderRadius: 4, border: `1px solid ${T.border}`, background: 'transparent', color: T.textMuted, fontSize: 12, fontWeight: 600, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box', marginTop: 4 }}
+              >
+                📲 Vraag de groep meer beschikbaarheid in te vullen
+              </a>
+            )}
           </div>
         </div>
       )}
