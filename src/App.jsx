@@ -277,7 +277,7 @@ export default function App() {
           <div className="sidebar-wrapper">
             <SidebarNav
               tab={tab}
-              setTab={setTab}
+              setTab={(id) => { goBackToGroup(); setTab(id) }}
               currentMember={currentMember}
               onAvatarClick={() => setView('profiel')}
               onHelpClick={() => setShowHelp(true)}
@@ -406,7 +406,7 @@ export default function App() {
           {/* Bottom nav — mobiel, alleen in groepsview */}
           {!subScreen && !showHelp && view === 'group' && (
             <div className="mobile-nav">
-              <BottomNav tab={tab} setTab={setTab} />
+              <BottomNav tab={tab} setTab={(id) => { goBackToGroup(); setTab(id) }} />
             </div>
           )}
         </div>
