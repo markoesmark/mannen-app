@@ -441,8 +441,6 @@ const globalStyles = `
   .sidebar-wrapper { display: none; }
   .mobile-header { display: flex; flex-direction: column; }
   .mobile-nav { display: block; }
-  .stats-mobile { display: flex; }
-  .desktop-stats { display: none !important; }
 
   @media (min-width: 768px) {
     body { background: #1a1a1a; }
@@ -462,8 +460,5 @@ const globalStyles = `
       overflow-y: auto;
       height: 100vh;
     }
-
-    .stats-mobile { display: none !important; }
-    .desktop-stats { display: flex !important; }
   }
 `
