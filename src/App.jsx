@@ -112,6 +112,8 @@ export default function App() {
     }
   }
 
+  const [loadingGroups, setLoadingGroups] = useState(true)
+
   async function loadGroups() {
     try {
       const data = await getGroupsForMember(currentMember.id)
@@ -129,6 +131,7 @@ export default function App() {
         await openGroup(groupsWithData[0], true)
       }
     } catch (e) { console.error(e) }
+    finally { setLoadingGroups(false) }
   }
 
   async function loadAvailability() {
@@ -393,10 +396,16 @@ export default function App() {
               )
             ) : !activeGroup ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32, background: T.bg }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: T.textMuted }}>Nog geen groepen</div>
-                <button onClick={() => setAppState('register')} style={{ padding: '12px 24px', background: T.accent, color: T.white, border: 'none', borderRadius: 6, fontFamily: "'Outfit',sans-serif", fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
-                  + Groep aanmaken of joinen
-                </button>
+                {loadingGroups ? (
+                  <div style={{ fontSize: 14, color: T.textMuted }}>Laden…</div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.textMuted }}>Nog geen groepen</div>
+                    <button onClick={() => setAppState('register')} style={{ padding: '12px 24px', background: T.accent, color: T.white, border: 'none', borderRadius: 6, fontFamily: "'Outfit',sans-serif", fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
+                      + Groep aanmaken of joinen
+                    </button>
+                  </>
+                )}
               </div>
             ) : tab === 'home' ? (
               <HomeScreen
