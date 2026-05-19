@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { T, formatDate, formatTijd, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
-import { updateActivity, deleteActivity, confirmActivity, resetConfirmations } from '../lib/supabase.js'
+import { updateActivity, deleteActivity, confirmActivity, unconfirmActivity, resetConfirmations } from '../lib/supabase.js'
 import { StatusBadge, MemberChip, SectionTitle, Divider, Lbl, Inp, Btn } from './UI.jsx'
 
 export default function ActivityDetailScreen({ activity, members, currentMember, onBack, onUpdated, onDeleted }) {
@@ -15,6 +15,7 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [unconfirming, setUnconfirming] = useState(false)
 
   const confirmIds = activity.confirmations?.map(c => c.member_id) || []
   const alreadyConfirmed = confirmIds.includes(currentMember?.id)
@@ -64,6 +65,21 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
       alert('Bevestigen mislukt: ' + e.message)
     }
     setConfirming(false)
+  }
+
+  const handleUnconfirm = async () => {
+    setUnconfirming(true)
+    try {
+      await unconfirmActivity(activity.id, currentMember.id)
+      onUpdated({
+        ...activity,
+        status: 'bevestigen',
+        confirmations: (activity.confirmations || []).filter(c => c.member_id !== currentMember.id),
+      })
+    } catch (e) {
+      alert('Ongedaan maken mislukt: ' + e.message)
+    }
+    setUnconfirming(false)
   }
 
   const handleDelete = async () => {
@@ -183,9 +199,20 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
 
       {alreadyConfirmed && activity.status !== 'gepland' && (
         <div style={{ margin: '12px 16px', background: T.greenBg, border: `1px solid ${T.greenBorder}`, borderRadius: 6, padding: '12px 14px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.green }}>✓ Jij hebt al bevestigd</div>
-          <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
-            Wachten op {members.filter(m => !confirmIds.includes(m.id)).map(m => m.name).join(', ')}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.green }}>✓ Jij hebt al bevestigd</div>
+              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>
+                Wachten op {members.filter(m => !confirmIds.includes(m.id)).map(m => m.name).join(', ')}
+              </div>
+            </div>
+            <button
+              onClick={handleUnconfirm}
+              disabled={unconfirming}
+              style={{ background: 'transparent', border: `1px solid ${T.greenBorder}`, borderRadius: 4, padding: '6px 10px', fontSize: 11, fontWeight: 600, color: T.green, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", flexShrink: 0, marginLeft: 10 }}
+            >
+              {unconfirming ? '…' : 'Ongedaan'}
+            </button>
           </div>
         </div>
       )}

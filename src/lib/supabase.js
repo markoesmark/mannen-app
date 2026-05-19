@@ -221,6 +221,15 @@ export async function deleteActivity(id) {
   if (error) throw error
 }
 
+export async function unconfirmActivity(activityId, memberId) {
+  const { error } = await supabase
+    .from('confirmations').delete()
+    .eq('activity_id', activityId).eq('member_id', memberId)
+  if (error) throw error
+  // Status terug naar bevestigen als activiteit gepland was
+  await supabase.from('activities').update({ status: 'bevestigen' }).eq('id', activityId).eq('status', 'gepland')
+}
+
 export async function resetConfirmations(activityId) {
   const { error } = await supabase
     .from('confirmations').delete().eq('activity_id', activityId)
