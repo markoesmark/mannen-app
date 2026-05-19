@@ -76,10 +76,10 @@ export default function GroupSwitcher({ groups, availability, activeGroup, onSwi
                 )}
                 <div style={{
                   fontSize: 12, fontWeight: 700,
-                  color: isActive ? T.white : '#666',
+                  color: isActive || !multi ? T.white : '#666',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                 }}>
-                  {multi ? group.naam : ''}
+                  {group.naam}
                 </div>
               </div>
 
