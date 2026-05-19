@@ -3,12 +3,12 @@ import { T, generateWeeks, formatDate, formatTijd, isExpired, buildGroupWhatsApp
 import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
-export default function NewActivityScreen({ availability, members, wishlist, activities, currentMember, groupId, onCreated, onBack }) {
-  const [step, setStep] = useState(1)
+export default function NewActivityScreen({ availability, members, wishlist, activities, currentMember, groupId, onCreated, onBack, initialDate }) {
+  const [step, setStep] = useState(initialDate ? 2 : 1)
   const [title, setTitle] = useState('')
   const [location, setLocation] = useState('')
   const [fromWish, setFromWish] = useState(null)
-  const [chosenDate, setChosenDate] = useState(null)
+  const [chosenDate, setChosenDate] = useState(initialDate || null)
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [saving, setSaving] = useState(false)

@@ -44,6 +44,7 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [activeActivity, setActiveActivity] = useState(null)
   const [showNew, setShowNew] = useState(false)
+  const [initialActivityDate, setInitialActivityDate] = useState(null)
   const [showAvail, setShowAvail] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showBeheer, setShowBeheer] = useState(false)
@@ -206,6 +207,7 @@ export default function App() {
     setShowAvail(false)
     setShowHelp(false)
     setShowBeheer(false)
+    setInitialActivityDate(null)
   }
 
   const handleGroupDeleted = async () => {
@@ -353,6 +355,7 @@ export default function App() {
                   groupId={activeGroup?.id}
                   onCreated={handleActivityCreated}
                   onBack={goBackToGroup}
+                  initialDate={initialActivityDate}
                 />
               ) : showBeheer ? (
                 <GroupBeheerScreen
@@ -388,6 +391,7 @@ export default function App() {
                 onOpenActivity={setActiveActivity}
                 onOpenAvailability={() => setShowAvail(true)}
                 onNewActivity={() => setShowNew(true)}
+                onNewActivityWithDate={(date) => { setInitialActivityDate(date); setShowNew(true) }}
                 onOpenBeheer={() => setShowBeheer(true)}
               />
             ) : tab === 'wishlist' ? (

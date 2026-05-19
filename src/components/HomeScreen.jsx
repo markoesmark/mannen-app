@@ -22,7 +22,7 @@ function ActivityRow({ activity, members, onClick }) {
   )
 }
 
-export default function HomeScreen({ activities, availability, members, currentMember, onOpenActivity, onOpenAvailability, onNewActivity, onOpenBeheer }) {
+export default function HomeScreen({ activities, availability, members, currentMember, onOpenActivity, onOpenAvailability, onNewActivity, onNewActivityWithDate, onOpenBeheer }) {
   const today = new Date().toISOString().split('T')[0]
   const myAvail = availability.find(a => a.member_id === currentMember?.id)
   const expired = !myAvail || isExpired(myAvail.expires_at)
@@ -32,6 +32,11 @@ export default function HomeScreen({ activities, availability, members, currentM
   const pending = activities.filter(a => a.status === 'bevestigen')
   const planned = activities.filter(a => a.status === 'gepland')
   const overlapDays = calculateOverlap(availability, members)
+  const reservedDates = new Map(
+    activities
+      .filter(a => a.status === 'bevestigen' || a.status === 'gepland')
+      .map(a => [a.best_date, a])
+  )
   const avatarColors = [T.red, '#e67e22', '#2980b9', '#27ae60']
 
   return (
@@ -118,11 +123,23 @@ export default function HomeScreen({ activities, availability, members, currentM
           )}
           <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}` }}>
             <div style={{ padding: '10px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {overlapDays.slice(0, 5).map(({ date, hasExpired }) => (
-                <span key={date} style={{ background: hasExpired ? T.amberBg : T.greenBg, border: `1px solid ${hasExpired ? T.amberBorder : T.greenBorder}`, borderRadius: 4, padding: '5px 10px', fontSize: 12, fontWeight: 700, color: hasExpired ? T.amber : T.green }}>
-                  {hasExpired ? '⚠ ' : ''}{formatDate(date)}
-                </span>
-              ))}
+              {overlapDays.slice(0, 5).map(({ date, hasExpired }) => {
+                const reserved = reservedDates.get(date)
+                if (reserved) {
+                  return (
+                    <div key={date} onClick={() => onOpenActivity(reserved)} style={{ background: T.surfaceAlt, border: `1px solid ${T.borderDark}`, borderRadius: 6, padding: '6px 10px', cursor: 'pointer', opacity: 0.75 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: T.textMid }}>{formatDate(date)}</div>
+                      <div style={{ fontSize: 10, color: T.textMuted, marginTop: 1 }}>bezet · {reserved.title}</div>
+                    </div>
+                  )
+                }
+                return (
+                  <button key={date} onClick={() => onNewActivityWithDate(date)} style={{ background: hasExpired ? T.amberBg : T.greenBg, border: `1px solid ${hasExpired ? T.amberBorder : T.greenBorder}`, borderRadius: 6, padding: '6px 10px', cursor: 'pointer', fontFamily: "'Outfit',sans-serif", textAlign: 'left' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: hasExpired ? T.amber : T.green }}>{hasExpired ? '⚠ ' : ''}{formatDate(date)}</div>
+                    <div style={{ fontSize: 10, color: hasExpired ? T.amber : T.green, marginTop: 1, opacity: 0.8 }}>+ plan hier iets</div>
+                  </button>
+                )
+              })}
               {overlapDays.length > 5 && <span style={{ fontSize: 12, color: T.textMuted, alignSelf: 'center' }}>+{overlapDays.length - 5} meer</span>}
             </div>
           </div>
