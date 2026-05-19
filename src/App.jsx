@@ -143,6 +143,10 @@ export default function App() {
     setView('group')
     if (resetTab) setTab('home')
     goBackToGroup()
+    // Leeg de data van de vorige groep zodat er nooit verkeerde data zichtbaar is
+    setActivities([])
+    setWishlist([])
+    setGroupMembers([])
     await Promise.all([
       loadActivities(group.id),
       loadWishlist(group.id),
