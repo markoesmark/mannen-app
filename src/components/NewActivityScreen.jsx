@@ -4,7 +4,8 @@ import { createActivity } from '../lib/supabase.js'
 import { DayCell, SectionTitle, Lbl, Inp, Btn, MemberChip } from './UI.jsx'
 
 export default function NewActivityScreen({ availability, members, wishlist, activities, currentMember, groupId, onCreated, onBack, initialDate }) {
-  const [step, setStep] = useState(initialDate ? 2 : 1)
+  const quickMode = !!initialDate
+  const [step, setStep] = useState(1)
   const [title, setTitle] = useState('')
   const [location, setLocation] = useState('')
   const [fromWish, setFromWish] = useState(null)
@@ -59,6 +60,97 @@ export default function NewActivityScreen({ availability, members, wishlist, act
     setSaving(false)
   }
 
+  // ── Quick mode: alles op één scherm ──────────────────────────────────────
+  if (quickMode && !createdActivity) {
+    const effectiveTitle = title || fromWish?.title || ''
+    const effectiveLocation = location || fromWish?.location || ''
+    return (
+      <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
+        <div style={{ padding: '14px 16px' }}>
+          {/* Datum header */}
+          <div style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, borderRadius: 8, padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 20 }}>📅</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 15, color: T.green }}>{formatDate(chosenDate)}</div>
+              <div style={{ fontSize: 11, color: T.textMuted, marginTop: 1 }}>iedereen vrij op deze datum</div>
+            </div>
+          </div>
+
+          {/* Wishlist */}
+          {wishlist.length > 0 && (
+            <>
+              <Lbl>Van de wishlist?</Lbl>
+              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 14 }}>
+                {[...wishlist].sort((a, b) => (b.wishlist_votes?.length || 0) - (a.wishlist_votes?.length || 0)).map(w => (
+                  <div key={w.id} onClick={() => { setFromWish(w); setTitle(w.title); setLocation(w.location || '') }}
+                    style={{ flexShrink: 0, minWidth: 130, background: fromWish?.id === w.id ? T.redLight : T.surface, border: `1px solid ${fromWish?.id === w.id ? T.red : T.border}`, borderRadius: 6, padding: '10px 12px', cursor: 'pointer' }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: T.text, marginBottom: 3 }}>{w.title}</div>
+                    <div style={{ fontSize: 11, color: T.textMuted }}>📍 {w.location}</div>
+                    <div style={{ fontSize: 11, color: '#e67e22', marginTop: 5, fontWeight: 700 }}>👊 {w.wishlist_votes?.length || 0}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ height: 1, background: T.border, margin: '0 0 14px' }} />
+            </>
+          )}
+
+          {/* Titel + locatie */}
+          <Lbl>Activiteit</Lbl>
+          <Inp value={title} onChange={e => { setTitle(e.target.value); setFromWish(null) }} placeholder="bv. Karting" />
+          <Lbl>Locatie</Lbl>
+          <Inp value={location} onChange={e => { setLocation(e.target.value) }} placeholder="bv. Lelystad" />
+
+          {/* Tijd */}
+          <Lbl>Begintijd</Lbl>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+            <input type="time" value={startTime} onChange={e => { setStartTime(e.target.value); setTimeError('') }}
+              style={{ width: 110, background: T.surfaceAlt, border: `1px solid ${timeError ? T.red : T.borderDark}`, borderRadius: 6, padding: '8px 10px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }} />
+            <span style={{ color: T.textMuted, fontWeight: 700 }}>–</span>
+            <input type="time" value={endTime} onChange={e => { setEndTime(e.target.value); setTimeError('') }}
+              style={{ width: 110, background: T.surfaceAlt, border: `1px solid ${timeError ? T.red : T.borderDark}`, borderRadius: 6, padding: '8px 10px', color: T.text, fontFamily: "'Outfit',sans-serif", fontSize: 14, outline: 'none', colorScheme: 'light' }} />
+            <span style={{ fontSize: 11, color: T.textMuted }}>eindtijd optioneel</span>
+          </div>
+          {timeError && <div style={{ fontSize: 11, color: T.red, fontWeight: 600, marginBottom: 10 }}>{timeError}</div>}
+
+          <Btn onClick={handleCreate} disabled={saving || !effectiveTitle || !startTime}>
+            {saving ? 'Aanmaken…' : '✓ Activiteit aanmaken'}
+          </Btn>
+          <Btn variant="ghost" onClick={onBack}>Annuleren</Btn>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Na aanmaken in quick mode ────────────────────────────────────────────
+  if (quickMode && createdActivity) {
+    return (
+      <div style={{ flex: 1, overflowY: 'auto', background: T.bg, padding: '14px 16px' }}>
+        <div style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, borderRadius: 6, padding: '14px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 24 }}>✅</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: T.green }}>Activiteit aangemaakt!</div>
+            <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>Stuur nu een berichtje naar de groep.</div>
+          </div>
+        </div>
+        <SectionTitle style={{ padding: 0, marginBottom: 10 }}>Sturen via WhatsApp</SectionTitle>
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 6, overflow: 'hidden', marginBottom: 20 }}>
+          <div style={{ padding: '11px 14px' }}>
+            <a href={buildGroupWhatsAppMessage(createdActivity, members, [], window.location.origin)} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'block', width: '100%', background: '#25D366', borderRadius: 4, padding: '11px', color: T.white, fontSize: 13, fontWeight: 700, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
+              📲 Stuur naar de groep
+            </a>
+          </div>
+        </div>
+        <button onClick={() => downloadICS(createdActivity)}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', background: T.surfaceAlt, border: `1px solid ${T.border}`, borderRadius: 6, fontSize: 14, fontWeight: 700, color: T.text, cursor: 'pointer', fontFamily: "'Outfit',sans-serif", marginBottom: 8 }}>
+          📅 Toevoegen aan agenda
+        </button>
+        <Btn onClick={() => onCreated(createdActivity)}>Klaar →</Btn>
+      </div>
+    )
+  }
+
+  // ── Normale 3-stappen flow ────────────────────────────────────────────────
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
       {/* Stap indicator */}
