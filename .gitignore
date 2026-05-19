@@ -12,3 +12,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Lokale hulpbestanden
+*.bat
+mockup-*.html

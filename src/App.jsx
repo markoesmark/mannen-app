@@ -111,7 +111,7 @@ export default function App() {
       setActivities(groupsWithData.flatMap(g => g.activities))
 
       if (groupsWithData.length > 0 && !activeGroup) {
-        await openGroup(groupsWithData[0])
+        await openGroup(groupsWithData[0], true)
       }
     } catch (e) { console.error(e) }
   }
@@ -123,10 +123,11 @@ export default function App() {
     } catch (e) { console.error(e) }
   }
 
-  async function openGroup(group) {
+  async function openGroup(group, resetTab = false) {
     setActiveGroup(group)
     setView('group')
-    setTab('home')
+    if (resetTab) setTab('home')
+    goBackToGroup()
     await Promise.all([
       loadActivities(group.id),
       loadWishlist(group.id),
