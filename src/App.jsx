@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { T } from './lib/helpers.js'
 import {
   supabase,
@@ -49,6 +49,14 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false)
   const [showBeheer, setShowBeheer] = useState(false)
 
+  // ── Realtime subscriptions ────────────────────────────────────────────────
+  const subsRef = useRef([])
+
+  function clearSubs() {
+    subsRef.current.forEach(ch => supabase.removeChannel(ch))
+    subsRef.current = []
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     // Check voor admin route
@@ -82,6 +90,12 @@ export default function App() {
 
   async function initApp() {
     await Promise.all([loadGroups(), loadAvailability()])
+
+    // Ververs beschikbaarheid wanneer de tab weer actief wordt
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') loadAvailability()
+    }
+    document.addEventListener('visibilitychange', onVisible)
 
     // Check voor pending invite token
     const pendingToken = localStorage.getItem('wanneer_pending_token')
@@ -136,13 +150,11 @@ export default function App() {
     ])
     await archiveExpiredActivities(group.id)
 
-    // Realtime
+    // Ruim oude subscriptions op en maak nieuwe aan
+    clearSubs()
     const actSub = subscribeToActivities(group.id, () => loadActivities(group.id))
     const avSub = subscribeToAvailability(() => loadAvailability())
-    return () => {
-      supabase.removeChannel(actSub)
-      supabase.removeChannel(avSub)
-    }
+    subsRef.current = [actSub, avSub]
   }
 
   async function loadActivities(groupId) {
