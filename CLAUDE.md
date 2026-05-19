@@ -23,8 +23,8 @@ VITE_ADMIN_PASSWORD=...
 
 ## Deployment
 
-- Live: https://mannen-app.vercel.app/ (doel: verhuizen naar wanneer.vercel.app)
-- Admin: https://mannen-app.vercel.app/admin — beveiligd via `VITE_ADMIN_PASSWORD`
+- Live: https://wanneer.vercel.app/
+- Admin: https://wanneer.vercel.app/admin — beveiligd via `VITE_ADMIN_PASSWORD`
 - Push naar `main` → Vercel deployt automatisch
 
 Werk altijd op een feature branch, nooit direct op `main`. Test lokaal voor je merget.
