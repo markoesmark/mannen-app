@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { T, formatDate, formatTijd, buildGroupWhatsAppMessage, downloadICS } from '../lib/helpers.js'
-import { updateActivity, deleteActivity, confirmActivity } from '../lib/supabase.js'
+import { updateActivity, deleteActivity, confirmActivity, resetConfirmations } from '../lib/supabase.js'
 import { StatusBadge, MemberChip, SectionTitle, Divider, Lbl, Inp, Btn } from './UI.jsx'
 
 export default function ActivityDetailScreen({ activity, members, currentMember, onBack, onUpdated, onDeleted }) {
@@ -22,8 +22,9 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
 
   const appBaseUrl = window.location.origin
 
+  const dateChanged = bestDate !== activity.best_date
+
   const handleSaveEdit = async () => {
-    // Fix 3: tijdvalidatie
     if (startTime && endTime && endTime <= startTime) {
       setTimeError('Eindtijd moet na begintijd liggen')
       return
@@ -37,8 +38,15 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
         best_date: bestDate,
         start_time: startTime,
         end_time: endTime || null,
+        // Bij datumwijziging: status terug naar bevestigen
+        ...(dateChanged ? { status: 'bevestigen' } : {}),
       })
-      onUpdated(updated)
+      if (dateChanged) {
+        await resetConfirmations(activity.id)
+        onUpdated({ ...updated, status: 'bevestigen', confirmations: [] })
+      } else {
+        onUpdated(updated)
+      }
       setEditing(false)
     } catch (e) {
       alert('Opslaan mislukt: ' + e.message)
@@ -121,6 +129,11 @@ export default function ActivityDetailScreen({ activity, members, currentMember,
                 <div style={{ paddingBottom: 9, fontSize: 11, color: T.textMuted, flexShrink: 0 }}>optioneel</div>
               </div>
               {timeError && <div style={{ fontSize: 11, color: T.red, fontWeight: 600, marginBottom: 10 }}>{timeError}</div>}
+              {dateChanged && (
+                <div style={{ background: T.amberBg, border: `1px solid ${T.amberBorder}`, borderRadius: 6, padding: '10px 12px', marginBottom: 10, fontSize: 12, color: T.amber, fontWeight: 600 }}>
+                  ⚠ Datum gewijzigd — alle bevestigingen worden gewist en iedereen moet opnieuw bevestigen.
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <Btn onClick={handleSaveEdit} disabled={saving || !bestDate} small>{saving ? 'Opslaan…' : 'Opslaan'}</Btn>
                 <Btn variant="ghost" onClick={() => { setTitle(activity.title); setLocation(activity.location); setBestDate(activity.best_date || ''); setStartTime(activity.start_time || ''); setEndTime(activity.end_time || ''); setTimeError(''); setEditing(false) }} small>Annuleren</Btn>

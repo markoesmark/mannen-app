@@ -221,6 +221,12 @@ export async function deleteActivity(id) {
   if (error) throw error
 }
 
+export async function resetConfirmations(activityId) {
+  const { error } = await supabase
+    .from('confirmations').delete().eq('activity_id', activityId)
+  if (error) throw error
+}
+
 export async function archiveExpiredActivities(groupId) {
   const today = new Date().toISOString().split('T')[0]
   const { error } = await supabase
