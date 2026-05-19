@@ -200,6 +200,7 @@ export default function App() {
   }
 
   const goBackToGroup = () => {
+    setView('group')
     setActiveActivity(null)
     setShowNew(false)
     setShowAvail(false)
