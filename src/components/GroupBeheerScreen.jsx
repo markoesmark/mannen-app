@@ -4,7 +4,7 @@ import { getInviteTokensForGroup, createInviteToken, revokeInviteToken, removeMe
 import { buildInviteWhatsApp } from '../lib/helpers.js'
 import { SectionTitle, Divider, Btn, Lbl, Inp } from './UI.jsx'
 
-export default function GroupBeheerScreen({ group, members, currentMember, onBack, onGroupDeleted, onGroupUpdated }) {
+export default function GroupBeheerScreen({ group, members, currentMember, onBack, onGroupDeleted, onGroupUpdated, onNewGroup }) {
   const [tokens, setTokens] = useState([])
   const [loadingToken, setLoadingToken] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
@@ -201,6 +201,16 @@ export default function GroupBeheerScreen({ group, members, currentMember, onBac
             </div>
           </div>
         )}
+      </div>
+      {/* Nieuwe groep */}
+      <SectionTitle>Andere groep</SectionTitle>
+      <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, padding: '14px 16px' }}>
+        <button
+          onClick={onNewGroup}
+          style={{ width: '100%', padding: '11px', background: 'transparent', border: `1px dashed ${T.border}`, borderRadius: 4, color: T.textMuted, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}
+        >
+          + Nieuwe groep aanmaken of joinen
+        </button>
       </div>
       <div style={{ height: 32 }} />
     </div>

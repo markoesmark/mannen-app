@@ -264,7 +264,7 @@ export default function App() {
     : showBeheer ? `${activeGroup?.naam} — beheer`
     : 'Mijn beschikbaarheid'
 
-  const inGroup = view === 'group'
+  const inGroup = view === 'group' || view === 'profiel'
 
   // ── App ───────────────────────────────────────────────────────────────────
   return (
@@ -361,6 +361,7 @@ export default function App() {
                   onBack={goBackToGroup}
                   onGroupDeleted={handleGroupDeleted}
                   onGroupUpdated={() => { loadGroups(); loadGroupMembers() }}
+                  onNewGroup={() => setAppState('register')}
                 />
               ) : (
                 <AvailabilityScreen
@@ -404,8 +405,8 @@ export default function App() {
             )
           )}
 
-          {/* Bottom nav — mobiel, alleen in groepsview */}
-          {!subScreen && !showHelp && view === 'group' && (
+          {/* Bottom nav — mobiel, alleen in groeps- en profielview */}
+          {!subScreen && !showHelp && inGroup && (
             <div className="mobile-nav">
               <BottomNav tab={tab} setTab={(id) => { goBackToGroup(); setTab(id) }} />
             </div>
