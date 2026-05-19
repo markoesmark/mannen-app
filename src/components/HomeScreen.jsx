@@ -42,17 +42,6 @@ export default function HomeScreen({ activities, availability, members, currentM
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
 
-      {/* Nudge: nog geen andere leden */}
-      {members.filter(m => m.id !== currentMember?.id).length === 0 && (
-        <div onClick={onOpenBeheer} style={{ margin: '12px 16px 0', background: T.accentLight, border: `1px solid ${T.accentBorder}`, borderRadius: 8, padding: '12px 14px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 13, color: T.accent }}>👋 Nodig anderen uit</div>
-            <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>Je bent nu de enige in deze groep — tik om een uitnodigingslink te maken</div>
-          </div>
-          <span style={{ color: T.accent, fontSize: 18 }}>›</span>
-        </div>
-      )}
-
       {/* Mijn beschikbaarheid */}
       <SectionTitle>Mijn beschikbaarheid</SectionTitle>
       <div onClick={onOpenAvailability} style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}`, padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -88,6 +77,16 @@ export default function HomeScreen({ activities, availability, members, currentM
       {/* Groep */}
       <SectionTitle>Groep</SectionTitle>
       <div style={{ background: T.surface, borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}` }}>
+        {/* Nudge: nog geen andere leden */}
+        {members.filter(m => m.id !== currentMember?.id).length === 0 && (
+          <div onClick={onOpenBeheer} style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: T.accent }}>👋 Nodig anderen uit</div>
+              <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>Je bent nu de enige in deze groep — tik om een uitnodigingslink te maken</div>
+            </div>
+            <span style={{ color: T.accent, fontSize: 18 }}>›</span>
+          </div>
+        )}
         {members.filter(m => m.id !== currentMember?.id).map((m, i, arr) => {
           const av = availability.find(a => a.member_id === m.id)
           const exp = !av || isExpired(av.expires_at)
