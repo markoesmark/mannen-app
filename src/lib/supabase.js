@@ -97,6 +97,16 @@ export async function deleteGroup(groupId) {
   if (error) throw error
 }
 
+export async function adminDeleteMember(memberId) {
+  // Verwijder gekoppelde data eerst, dan het lid zelf
+  await supabase.from('wishlist_votes').delete().eq('member_id', memberId)
+  await supabase.from('confirmations').delete().eq('member_id', memberId)
+  await supabase.from('availability').delete().eq('member_id', memberId)
+  await supabase.from('group_members').delete().eq('member_id', memberId)
+  const { error } = await supabase.from('members').delete().eq('id', memberId)
+  if (error) throw error
+}
+
 export async function leaveGroup(groupId, memberId) {
   const { error } = await supabase
     .from('group_members').delete()

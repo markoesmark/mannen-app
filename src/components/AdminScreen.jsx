@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { T } from '../lib/helpers.js'
-import { adminGetAllGroups, adminGetAllMembers, adminGetStats, adminResetPin, deleteGroup } from '../lib/supabase.js'
+import { adminGetAllGroups, adminGetAllMembers, adminGetStats, adminResetPin, deleteGroup, adminDeleteMember } from '../lib/supabase.js'
 import { SectionTitle, Divider } from './UI.jsx'
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'wanneer-admin'
@@ -14,6 +14,7 @@ export default function AdminScreen() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmDeleteMember, setConfirmDeleteMember] = useState(null)
   const [resetPinFor, setResetPinFor] = useState(null)
   const [newPin, setNewPin] = useState('')
   const [resetSuccess, setResetSuccess] = useState(null)
@@ -45,6 +46,14 @@ export default function AdminScreen() {
     try {
       await deleteGroup(groupId)
       setConfirmDelete(null)
+      await loadData()
+    } catch (e) { alert(e.message) }
+  }
+
+  const handleDeleteMember = async (memberId) => {
+    try {
+      await adminDeleteMember(memberId)
+      setConfirmDeleteMember(null)
       await loadData()
     } catch (e) { alert(e.message) }
   }
@@ -166,7 +175,12 @@ export default function AdminScreen() {
                     {avail?.updated_at ? ` · bijgewerkt ${formatDate(avail.updated_at)}` : ''}
                   </div>
                 </div>
-                {resetSuccess === m.id ? (
+                {confirmDeleteMember === m.id ? (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => handleDeleteMember(m.id)} style={{ background: T.redLight, border: `1px solid ${T.redBorder}`, borderRadius: 4, padding: '5px 10px', fontSize: 11, fontWeight: 700, color: T.red, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>Ja, verwijder</button>
+                    <button onClick={() => setConfirmDeleteMember(null)} style={{ background: T.surfaceAlt, border: `1px solid ${T.border}`, borderRadius: 4, padding: '5px 10px', fontSize: 11, color: T.textMuted, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>Annuleer</button>
+                  </div>
+                ) : resetSuccess === m.id ? (
                   <span style={{ fontSize: 12, color: T.green, fontWeight: 600 }}>✓ Pin gereset</span>
                 ) : resetPinFor === m.id ? (
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -177,10 +191,16 @@ export default function AdminScreen() {
                     <button onClick={() => { setResetPinFor(null); setNewPin('') }} style={{ background: T.surfaceAlt, border: `1px solid ${T.border}`, borderRadius: 4, padding: '6px 8px', fontSize: 11, color: T.textMuted, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => { setResetPinFor(m.id); setNewPin('') }}
-                    style={{ background: 'none', border: `1px solid ${T.amberBorder}`, borderRadius: 4, padding: '5px 10px', fontSize: 11, fontWeight: 600, color: T.amber, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
-                    Reset pin
-                  </button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => { setResetPinFor(m.id); setNewPin('') }}
+                      style={{ background: 'none', border: `1px solid ${T.amberBorder}`, borderRadius: 4, padding: '5px 10px', fontSize: 11, fontWeight: 600, color: T.amber, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
+                      Reset pin
+                    </button>
+                    <button onClick={() => setConfirmDeleteMember(m.id)}
+                      style={{ background: 'none', border: `1px solid ${T.border}`, borderRadius: 4, padding: '5px 8px', fontSize: 11, color: T.textMuted, cursor: 'pointer', fontFamily: "'Outfit',sans-serif" }}>
+                      🗑
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
