@@ -263,7 +263,7 @@ export default function App() {
   if (appState === 'login') return (
     <>
       <style>{globalStyles}</style>
-      <LoginScreen onLogin={handleLogin} onRegister={() => setAppState('register')} />
+      <LoginScreen onLogin={handleLogin} onRegister={() => setAppState('register')} hasPendingInvite={!!localStorage.getItem('wanneer_pending_token')} />
     </>
   )
 

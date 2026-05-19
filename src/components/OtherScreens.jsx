@@ -85,7 +85,7 @@ export function HelpScreen() {
     {
       icon: '🗺️',
       title: 'Wishlist',
-      text: 'Ideeën die jullie ooit willen doen staan op de wishlist. Iedereen kan ideeën toevoegen, bewerken en met een 👊 aangeven dat hij het een goed idee vindt. Bij het plannen van een activiteit kun je direct een idee van de wishlist pakken — gesorteerd op meeste stemmen.',
+      text: 'Ideeën die jullie ooit willen doen staan op de wishlist. Iedereen kan ideeën toevoegen, bewerken en met een 👌 aangeven dat hij het een goed idee vindt. Bij het plannen van een activiteit kun je direct een idee van de wishlist pakken — gesorteerd op meeste stemmen.',
     },
     {
       icon: '📦',

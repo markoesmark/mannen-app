@@ -86,7 +86,7 @@ export default function NewActivityScreen({ availability, members, wishlist, act
                     style={{ flexShrink: 0, minWidth: 130, background: fromWish?.id === w.id ? T.redLight : T.surface, border: `1px solid ${fromWish?.id === w.id ? T.red : T.border}`, borderRadius: 6, padding: '10px 12px', cursor: 'pointer' }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: T.text, marginBottom: 3 }}>{w.title}</div>
                     <div style={{ fontSize: 11, color: T.textMuted }}>📍 {w.location}</div>
-                    <div style={{ fontSize: 11, color: '#e67e22', marginTop: 5, fontWeight: 700 }}>👊 {w.wishlist_votes?.length || 0}</div>
+                    <div style={{ fontSize: 11, color: '#e67e22', marginTop: 5, fontWeight: 700 }}>👌 {w.wishlist_votes?.length || 0}</div>
                   </div>
                 ))}
               </div>
@@ -169,7 +169,7 @@ export default function NewActivityScreen({ availability, members, wishlist, act
               <div key={w.id} onClick={() => pickWish(w)} style={{ flexShrink: 0, minWidth: 130, background: fromWish?.id === w.id ? T.redLight : T.surface, border: `1px solid ${fromWish?.id === w.id ? T.red : T.border}`, borderRadius: 6, padding: '10px 12px', cursor: 'pointer' }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: T.text, marginBottom: 3 }}>{w.title}</div>
                 <div style={{ fontSize: 11, color: T.textMuted }}>📍 {w.location}</div>
-                <div style={{ fontSize: 11, color: '#e67e22', marginTop: 5, fontWeight: 700 }}>👊 {w.wishlist_votes?.length || 0}</div>
+                <div style={{ fontSize: 11, color: '#e67e22', marginTop: 5, fontWeight: 700 }}>👌 {w.wishlist_votes?.length || 0}</div>
               </div>
             ))}
           </div>

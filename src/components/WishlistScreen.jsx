@@ -140,9 +140,9 @@ export default function WishlistScreen({ wishlist, members, currentMember, group
                       </div>
                     </div>
 
-                    {/* Boks knop */}
+                    {/* Stem knop */}
                     <button onClick={() => handleVote(w.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, background: voted ? '#fff3e0' : T.surfaceAlt, border: `1px solid ${voted ? '#e67e22' : T.border}`, borderRadius: 4, padding: '8px 11px', cursor: 'pointer', color: voted ? '#e67e22' : T.textMuted, fontSize: 18, minWidth: 48, minHeight: 52, flexShrink: 0 }}>
-                      👊
+                      👌
                       <span style={{ fontSize: 11, fontWeight: 700 }}>{voteCount}</span>
                     </button>
                   </div>
